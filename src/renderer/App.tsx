@@ -1,7 +1,8 @@
+import "./style.css"
 function App() {
   return (
     <>
-      <h1>My Reader</h1>
+      <h1 className="text-2xl text-center">My Reader</h1>
     </>
   )
 }
