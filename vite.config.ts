@@ -28,9 +28,13 @@ export default defineConfig({
     renderer(),
     tailwindcss(),
   ],
-
   build: {
     outDir: path.join(__dirname, "dist/renderer"),
     emptyOutDir: true,
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
 })
