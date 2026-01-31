@@ -26,8 +26,10 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.1.18",
+    "axios": "^1.13.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "feedsmith": "^2.9.0",
     "i18next": "^25.8.0",
     "i18next-http-backend": "^3.0.2",
     "lucide-react": "^0.563.0",
