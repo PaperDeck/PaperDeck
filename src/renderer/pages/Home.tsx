@@ -1,7 +1,6 @@
-import "./style.css"
 import { useTranslation } from "react-i18next"
 
-function App() {
+function Home() {
   const { t } = useTranslation()
   return (
     <>
@@ -10,4 +9,4 @@ function App() {
   )
 }
 
-export default App
+export default Home
