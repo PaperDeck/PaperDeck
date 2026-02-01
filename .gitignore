@@ -26,3 +26,8 @@ dist-ssr
 build/
 temp/
 tmp/
+
+# Other
+.env
+/generated/prisma
+*.db
