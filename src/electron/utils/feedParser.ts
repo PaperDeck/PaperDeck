@@ -31,7 +31,7 @@ export default async function feedParser(url: string): Promise<Feed> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeFeed(feed: any, url: string): Feed {
+export function normalizeFeed(feed: any, url: string): Feed {
   return {
     title: feed.title ?? "",
     description: feed.description ?? feed.subtitle ?? "",
@@ -44,7 +44,17 @@ function normalizeFeed(feed: any, url: string): Feed {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeItem(item: any): FeedItem {
+export function normalizeItem(item: any): FeedItem {
+  const fallbackSource = [item.published, item.updated, item.title]
+    .filter(Boolean)
+    .join("|")
+  const rawDate =
+    item.date_published ?? item.published ?? item.pubDate ?? item.date
+  let datePublished = ""
+  if (rawDate) {
+    const parsed = new Date(rawDate)
+    datePublished = !isNaN(parsed.getTime()) ? parsed.toISOString() : ""
+  }
   return {
     title: item.title ?? "",
     link: item.link ?? "",
@@ -55,13 +65,10 @@ function normalizeItem(item: any): FeedItem {
       item.description ??
       item.summary ??
       "",
-    datePublished:
-      item.date_published ?? item.published ?? item.pubDate ?? item.date ?? "",
+    rawDate: rawDate ?? "",
+    datePublished,
     image: item.image ?? item.enclosure?.url ?? item.mediaContent?.url ?? "",
-    id:
-      item.id ??
-      item.link ??
-      hashString(item.title ?? item.description ?? JSON.stringify(item)),
+    id: item.guid ?? item.id ?? item.link ?? hashString(fallbackSource),
   }
 }
 
@@ -83,6 +90,7 @@ export interface FeedItem {
   datePublished?: string
   author?: string
   image?: string
+  rawDate?: string
 }
 
 class ParserError extends Error {
