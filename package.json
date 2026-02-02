@@ -13,7 +13,7 @@
     "prepare": "husky",
     "test:unit": "vitest run tests/unit --coverage",
     "test:integration": "vitest run tests/integration",
-    "test": "npm run test:unit && npm run test:integration"
+    "test": "vitest run"
   },
   "build": {
     "appId": "com.reader.app",
@@ -47,7 +47,8 @@
     "tailwindcss": "^4.1.18"
   },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "**/*": "prettier --write --ignore-unknown",
+    "*.{js,ts,vue}": "eslint --fix"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
