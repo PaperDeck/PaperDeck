@@ -13,7 +13,7 @@
     "prepare": "husky",
     "test:unit": "vitest run tests/unit --coverage",
     "test:integration": "vitest run tests/integration",
-    "test": "npm run test:unit && npm run test:integration"
+    "test": "vitest run"
   },
   "build": {
     "appId": "com.reader.app",
