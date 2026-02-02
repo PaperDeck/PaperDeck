@@ -47,7 +47,8 @@
     "tailwindcss": "^4.1.18"
   },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "**/*": "prettier --write --ignore-unknown",
+    "*.{js,ts,vue}": "eslint --fix"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
