@@ -7,13 +7,23 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-
+    env:
+      DATABASE_URL: "file:./test.db"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: "24"
+      - uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - run: npm ci
       - run: npx eslint . --ext .js,.jsx,.ts,.tsx
       - run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
+      - run: touch test.db
+      - run: npx prisma generate
+      - run: npx prisma db push
       - run: npm test
