@@ -1,0 +1,19 @@
+name: Lint, Format & Test Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "24"
+      - run: npm ci
+      - run: npx eslint . --ext .js,.jsx,.ts,.tsx
+      - run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
+      - run: npm test
