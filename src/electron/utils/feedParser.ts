@@ -65,6 +65,7 @@ export function normalizeItem(item: any): FeedItem {
       item.description ??
       item.summary ??
       "",
+    summary: item.summary ?? item.description ?? "",
     rawDate: rawDate ?? "",
     datePublished,
     image: item.image ?? item.enclosure?.url ?? item.mediaContent?.url ?? "",
@@ -85,12 +86,12 @@ export interface Feed {
 export interface FeedItem {
   id: string
   title: string
-  link?: string
-  content?: string
-  datePublished?: string
-  author?: string
-  image?: string
-  rawDate?: string
+  link: string
+  content: string
+  summary: string
+  datePublished: string
+  image: string
+  rawDate: string
 }
 
 class ParserError extends Error {
