@@ -28,7 +28,7 @@ model Article {
   isRead    Boolean  @default(false)
 
   feedId    String
-  feed      Feed     @relation(fields: [feedId], references: [id])
+  feed      Feed     @relation(fields: [feedId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 

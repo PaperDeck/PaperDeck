@@ -2,25 +2,13 @@ import { parseFeed } from "feedsmith"
 import axios from "axios"
 import hashString from "./hash"
 
-export default async function feedParser(url: string): Promise<Feed> {
+export default async function feedParser(
+  url: string,
+  timeout: number = 5000,
+): Promise<Feed> {
   let feedContent = ""
-  try {
-    const response = await axios.get(url)
-    feedContent = response.data
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        throw new ParserError(
-          `Server returned ${error.response.status} for ${url}`,
-          error.response.status,
-        )
-      } else {
-        throw new ParserError("Failed to receive response from feed URL")
-      }
-    } else {
-      throw error
-    }
-  }
+  const response = await axios.get(url, { timeout })
+  feedContent = response.data
   try {
     // TODO: Specify format when calling to improve performance
     const { feed } = parseFeed(feedContent)
@@ -50,10 +38,10 @@ export function normalizeItem(item: any): FeedItem {
     .join("|")
   const rawDate =
     item.date_published ?? item.published ?? item.pubDate ?? item.date
-  let datePublished = ""
+  let datePublished = undefined
   if (rawDate) {
     const parsed = new Date(rawDate)
-    datePublished = !isNaN(parsed.getTime()) ? parsed.toISOString() : ""
+    datePublished = !isNaN(parsed.getTime()) ? parsed : undefined
   }
   return {
     title: item.title ?? "",
@@ -65,6 +53,7 @@ export function normalizeItem(item: any): FeedItem {
       item.description ??
       item.summary ??
       "",
+    summary: item.summary ?? item.description ?? "",
     rawDate: rawDate ?? "",
     datePublished,
     image: item.image ?? item.enclosure?.url ?? item.mediaContent?.url ?? "",
@@ -85,18 +74,17 @@ export interface Feed {
 export interface FeedItem {
   id: string
   title: string
-  link?: string
-  content?: string
-  datePublished?: string
-  author?: string
-  image?: string
-  rawDate?: string
+  link: string
+  content: string
+  summary: string
+  datePublished?: Date
+  image: string
+  rawDate: string
 }
 
-class ParserError extends Error {
+export class ParserError extends Error {
   statusCode?: number
-  constructor(message: string, statusCode?: number) {
+  constructor(message: string) {
     super(message)
-    this.statusCode = statusCode
   }
 }

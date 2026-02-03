@@ -19,7 +19,7 @@ describe("Feed Normalizer Units", () => {
 
       expect(result.title).toBe("Hello World")
       expect(result.id).toBe("item-123")
-      expect(result.datePublished).toBe("2024-05-20T10:00:00.000Z")
+      expect(result.datePublished).toEqual(new Date("2024-05-20T10:00:00Z"))
     })
 
     it("should prioritize content_text over description and summary", () => {
@@ -52,7 +52,7 @@ describe("Feed Normalizer Units", () => {
     it("should return an empty string for invalid date formats", () => {
       const rawItem = { date_published: "not-a-date" }
       const result = normalizeItem(rawItem)
-      expect(result.datePublished).toBe("")
+      expect(result.datePublished).toBeUndefined()
     })
 
     it("should fallback to content_html if content_text is missing", () => {
@@ -68,7 +68,7 @@ describe("Feed Normalizer Units", () => {
     it("should try multiple date fields and save rawDate", () => {
       const rawItem = { pubDate: "2024-06-01" }
       const result = normalizeItem(rawItem)
-      expect(result.datePublished).toContain("2024-06-01")
+      expect(result.datePublished).toEqual(new Date("2024-06-01"))
       expect(result.rawDate).toBe("2024-06-01")
     })
 
