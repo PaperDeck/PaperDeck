@@ -2,25 +2,13 @@ import { parseFeed } from "feedsmith"
 import axios from "axios"
 import hashString from "./hash"
 
-export default async function feedParser(url: string): Promise<Feed> {
+export default async function feedParser(
+  url: string,
+  timeout: number = 5000,
+): Promise<Feed> {
   let feedContent = ""
-  try {
-    const response = await axios.get(url)
-    feedContent = response.data
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        throw new ParserError(
-          `Server returned ${error.response.status} for ${url}`,
-          error.response.status,
-        )
-      } else {
-        throw new ParserError("Failed to receive response from feed URL")
-      }
-    } else {
-      throw error
-    }
-  }
+  const response = await axios.get(url, { timeout })
+  feedContent = response.data
   try {
     // TODO: Specify format when calling to improve performance
     const { feed } = parseFeed(feedContent)
@@ -96,8 +84,7 @@ export interface FeedItem {
 
 class ParserError extends Error {
   statusCode?: number
-  constructor(message: string, statusCode?: number) {
+  constructor(message: string) {
     super(message)
-    this.statusCode = statusCode
   }
 }
