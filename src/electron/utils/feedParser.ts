@@ -82,7 +82,7 @@ export interface FeedItem {
   rawDate: string
 }
 
-class ParserError extends Error {
+export class ParserError extends Error {
   statusCode?: number
   constructor(message: string) {
     super(message)
