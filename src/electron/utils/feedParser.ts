@@ -50,10 +50,10 @@ export function normalizeItem(item: any): FeedItem {
     .join("|")
   const rawDate =
     item.date_published ?? item.published ?? item.pubDate ?? item.date
-  let datePublished = ""
+  let datePublished = undefined
   if (rawDate) {
     const parsed = new Date(rawDate)
-    datePublished = !isNaN(parsed.getTime()) ? parsed.toISOString() : ""
+    datePublished = !isNaN(parsed.getTime()) ? parsed : undefined
   }
   return {
     title: item.title ?? "",
@@ -89,7 +89,7 @@ export interface FeedItem {
   link: string
   content: string
   summary: string
-  datePublished: string
+  datePublished?: Date
   image: string
   rawDate: string
 }
