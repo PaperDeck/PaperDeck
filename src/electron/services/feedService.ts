@@ -1,4 +1,4 @@
-import { prisma } from "../utils/prisma"
+import { prisma } from "@/electron/utils/prisma"
 
 class FeedService {
   async addFeed(title: string, url: string) {

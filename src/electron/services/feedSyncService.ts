@@ -1,8 +1,8 @@
-import feedService from "./feedService"
+import feedService from "@/electron/services/feedService"
 import pLimit from "p-limit"
-import feedParser from "./feed/parser"
-import { ParserError } from "./feed/types"
-import articleService from "./articleService"
+import feedParser from "@/electron/services/feed/parser"
+import { ParserError } from "@/electron/services/feed/types"
+import articleService from "@/electron/services/articleService"
 import axios from "axios"
 
 // TODO: Let user configure concurrency limit
