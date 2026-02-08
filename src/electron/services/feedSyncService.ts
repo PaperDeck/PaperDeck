@@ -1,6 +1,7 @@
 import feedService from "./feedService"
 import pLimit from "p-limit"
-import feedParser, { ParserError } from "../utils/feedParser"
+import feedParser from "./feed/parser"
+import { ParserError } from "./feed/types"
 import articleService from "./articleService"
 import axios from "axios"
 
