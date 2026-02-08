@@ -1,22 +1,5 @@
-import { parseFeed } from "feedsmith"
-import axios from "axios"
-import hashString from "./hash"
-
-export default async function feedParser(
-  url: string,
-  timeout: number = 5000,
-): Promise<Feed> {
-  let feedContent = ""
-  const response = await axios.get(url, { timeout })
-  feedContent = response.data
-  try {
-    // TODO: Specify format when calling to improve performance
-    const { feed } = parseFeed(feedContent)
-    return normalizeFeed(feed, url)
-  } catch (_error) {
-    throw new ParserError("Feed Parsing Error")
-  }
-}
+import hashString from "@/electron/utils/hash"
+import type { Feed, FeedItem } from "./types"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalizeFeed(feed: any, url: string): Feed {
@@ -58,33 +41,5 @@ export function normalizeItem(item: any): FeedItem {
     datePublished,
     image: item.image ?? item.enclosure?.url ?? item.mediaContent?.url ?? "",
     id: item.guid ?? item.id ?? item.link ?? hashString(fallbackSource),
-  }
-}
-
-export interface Feed {
-  title: string
-  description?: string
-  link?: string
-  feedUrl?: string
-  language?: string
-  items: FeedItem[]
-  image?: string
-}
-
-export interface FeedItem {
-  id: string
-  title: string
-  link: string
-  content: string
-  summary: string
-  datePublished?: Date
-  image: string
-  rawDate: string
-}
-
-export class ParserError extends Error {
-  statusCode?: number
-  constructor(message: string) {
-    super(message)
   }
 }
