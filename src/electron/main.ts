@@ -15,6 +15,7 @@ const createWindow = () => {
     webPreferences: {
       contextIsolation: true,
       preload: path.join(__dirname, "preload.mjs"),
+      spellcheck: false,
     },
   })
   if (process.env.VITE_DEV_SERVER_URL) {
