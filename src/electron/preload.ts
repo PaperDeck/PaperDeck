@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron"
 import type { FeedItem } from "@/electron/services/feed/types"
 
-contextBridge.exposeInMainWorld("ipcBridge", {
+const api = {
   articleService: {
     saveArticles: (feedId: string, articles: FeedItem[]) =>
       ipcRenderer.invoke("articleService", "saveArticles", feedId, articles),
@@ -31,4 +31,8 @@ contextBridge.exposeInMainWorld("ipcBridge", {
   },
   feedParser: (url: string, timeout?: number) =>
     ipcRenderer.invoke("feedParser", url, timeout),
-})
+}
+
+contextBridge.exposeInMainWorld("ipcBridge", api)
+
+export type IpcBridge = typeof api

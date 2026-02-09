@@ -1,8 +1,7 @@
-interface Window {
-  ipcBridge: {
-    articleService
-    feedService
-    feedSyncService
-    feedParser
+import type { IpcBridge } from "@/electron/preload"
+
+declare global {
+  interface Window {
+    ipcBridge: IpcBridge
   }
 }
