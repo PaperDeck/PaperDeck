@@ -12,21 +12,20 @@ class FeedService {
   async getFeeds() {
     return await prisma.feed.findMany()
   }
-  async deleteFeed(id: string) {
+  async deleteFeed(url: string) {
     return await prisma.feed.delete({
       where: {
-        id: id,
+        url: url,
       },
     })
   }
-  async updateFeed(id: string, title: string, url: string) {
+  async updateFeed(url: string, title: string) {
     return await prisma.feed.update({
       where: {
-        id: id,
+        url: url,
       },
       data: {
         title: title,
-        url: url,
       },
     })
   }

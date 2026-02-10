@@ -2,7 +2,7 @@ import { prisma } from "@/electron/utils/prisma"
 import type { FeedItem } from "@/electron/services/feed/types"
 
 class ArticleService {
-  async saveArticles(feedId: string, articles: FeedItem[]) {
+  async saveArticles(feedUrl: string, articles: FeedItem[]) {
     const operations = articles.map((article) => {
       return prisma.article.upsert({
         where: { id: article.id },
@@ -18,7 +18,7 @@ class ArticleService {
           summary: article.summary,
           pubDate: article.datePublished,
           isRead: false,
-          feedId: feedId,
+          feedUrl,
         },
       })
     })
@@ -31,16 +31,16 @@ class ArticleService {
       data: { isRead: true },
     })
   }
-  async getArticlesByFeedId(feedId: string, limit = 50) {
+  async getArticlesByFeedUrl(feedUrl: string, limit = 50) {
     return prisma.article.findMany({
-      where: { feedId },
+      where: { feedUrl },
       orderBy: { pubDate: "desc" },
       take: limit,
     })
   }
-  async deleteAllArticlesByFeedId(feedId: string) {
+  async deleteAllArticlesByFeedUrl(feedUrl: string) {
     return prisma.article.deleteMany({
-      where: { feedId },
+      where: { feedUrl },
     })
   }
 }

@@ -11,24 +11,23 @@ datasource db {
 }
 
 model Feed {
-  id        String    @id @default(cuid())
+  url       String    @id
   title     String
-  url       String    @unique
   createdAt DateTime  @default(now())
   articles  Article[]
 }
 
 model Article {
-  id        String   @id
-  title     String
-  link      String   @unique
-  summary   String?
-  content   String?
-  pubDate   DateTime?
-  isRead    Boolean  @default(false)
+  id      String    @id
+  title   String
+  link    String    @unique
+  summary String?
+  content String?
+  pubDate DateTime?
+  isRead  Boolean   @default(false)
 
-  feedId    String
-  feed      Feed     @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  feed   Feed   @relation(fields: [feedUrl], references: [url], onDelete: Cascade)
+  feedUrl String
 
   createdAt DateTime @default(now())
 

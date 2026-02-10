@@ -16,8 +16,8 @@ class FeedSyncService {
       limit(async () => {
         try {
           const parsedFeed = await feedParser(feed.url)
-          await feedService.updateFeed(feed.id, parsedFeed.title, feed.url)
-          await articleService.saveArticles(feed.id, parsedFeed.items)
+          await feedService.updateFeed(feed.url, parsedFeed.title)
+          await articleService.saveArticles(feed.url, parsedFeed.items)
         } catch (error) {
           if (error instanceof ParserError) {
             console.error(`Failed to parse feed ${feed.url}: ${error.message}`)

@@ -8,6 +8,7 @@ import {
   beforeEach,
   afterEach,
 } from "vitest"
+import { randomUUID } from "crypto"
 import type { Mock } from "vitest"
 import feedSyncService from "@/electron/services/feedSyncService"
 import feedService from "@/electron/services/feedService"
@@ -16,16 +17,19 @@ import type { Feed } from "@/electron/services/feed/types"
 import { ParserError } from "@/electron/services/feed/types"
 import * as feedParserModule from "@/electron/services/feed/parser"
 
+const feedUrl = `https://example.com/${randomUUID()}`
+
 const testFeed = {
   title: "FeedSync Test Feed",
-  url: "https://example.com/sync-feed",
+  url: feedUrl,
+  createdAt: new Date(),
 }
 
 const parsedFeed = {
   title: "FeedSync Test Feed Title",
   description: "desc",
-  link: "https://example.com/sync-feed",
-  feedUrl: "https://example.com/sync-feed",
+  link: feedUrl,
+  feedUrl: feedUrl,
   language: "en",
   image: "",
   items: [
@@ -42,15 +46,13 @@ const parsedFeed = {
   ],
 }
 
-let feedId: string
 let consoleErrorSpy: Mock
 
 beforeAll(async () => {
-  const feed = await feedService.addFeed(testFeed.title, testFeed.url)
-  feedId = feed.id
+  await feedService.addFeed(testFeed.title, testFeed.url)
 })
 afterAll(async () => {
-  await feedService.deleteFeed(feedId)
+  await feedService.deleteFeed(feedUrl)
 })
 beforeEach(() => {
   vi.clearAllMocks()
@@ -63,17 +65,18 @@ afterEach(() => {
 describe("FeedSyncService", () => {
   it("should sync feeds and save articles", async () => {
     vi.spyOn(feedParserModule, "default").mockResolvedValue(parsedFeed as Feed)
+    vi.spyOn(feedService, "getFeeds").mockResolvedValue([testFeed])
     const updateFeedSpy = vi.spyOn(feedService, "updateFeed")
     const saveArticlesSpy = vi.spyOn(articleService, "saveArticles")
 
     await feedSyncService.syncFeeds()
 
     expect(updateFeedSpy).toHaveBeenCalledWith(
-      feedId,
-      parsedFeed.title,
       parsedFeed.feedUrl,
+      parsedFeed.title,
     )
-    expect(saveArticlesSpy).toHaveBeenCalledWith(feedId, parsedFeed.items)
+
+    expect(saveArticlesSpy).toHaveBeenCalledWith(feedUrl, parsedFeed.items)
   })
 
   it("should handle parser errors gracefully", async () => {
