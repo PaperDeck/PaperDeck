@@ -1,22 +1,25 @@
 import { useTranslation } from "react-i18next"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/renderer/components/ui/card"
 import { Input } from "@/renderer/components/ui/input"
 import { Button } from "@/renderer/components/ui/button"
 import { useState } from "react"
 import { useFeedParser } from "../hooks/useApi"
 import { toast } from "react-hot-toast"
 import { useForm, Controller } from "react-hook-form"
+import { Dialog } from "@/renderer/components/ui/dialog"
+import { DialogContent, DialogDescription, DialogTitle } from "./ui/dialog"
+import { Rss } from "lucide-react"
 
 interface FormData {
   url: string
 }
 
-export default function NewFeed() {
+export default function NewFeed({
+  isOpen,
+  onOpenChange,
+}: {
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+}) {
   const { t } = useTranslation()
   const [isButtonDisabled, setIsButtonDisabled] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -39,13 +42,14 @@ export default function NewFeed() {
     console.log("Parsed feed:", result)
   }
   return (
-    <div className="flex items-center justify-center h-full">
-      <Card className="flex flex-col px-5 py-10 w-full max-w-md">
-        <div className="flex flex-col items-center">
-          <CardTitle className="text-lg">{t("newFeed")}</CardTitle>
-          <CardDescription>{t("newFeedDescription")}</CardDescription>
-        </div>
-        <CardContent>
+    <div className="flex items-center justify-center">
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <div className="flex flex-col items-center">
+            <Rss className="w-12 h-12 mb-4" />
+            <DialogTitle className="text-lg">{t("newFeed")}</DialogTitle>
+            <DialogDescription>{t("newFeedDescription")}</DialogDescription>
+          </div>
           <form onSubmit={handleSubmit(handleAddFeed)}>
             <Controller
               name="url"
@@ -70,11 +74,11 @@ export default function NewFeed() {
               disabled={isLoading || isButtonDisabled}
               type="submit"
             >
-              {isLoading ? t("loading") : t("next")}
+              {isLoading ? t("loading") : t("Add")}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

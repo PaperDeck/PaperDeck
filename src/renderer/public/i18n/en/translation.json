@@ -2,7 +2,7 @@
   "greeting": "Hello",
   "newFeed": "Add new feed",
   "newFeedDescription": "Add a new feed to your list.",
-  "next": "Next",
+  "add": "Add",
   "loading": "Loading...",
   "feedParsingFailed": "Failed to parse the feed."
 }
