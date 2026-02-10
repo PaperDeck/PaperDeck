@@ -12,7 +12,7 @@ describe("Feed Normalizer Units", () => {
         link: "https://example.com/post",
         content_html: "<p>Content</p>",
         date_published: "2024-05-20T10:00:00Z",
-        guid: "item-123",
+        guid: { value: "item-123" },
       }
 
       const result = normalizeItem(rawItem)
