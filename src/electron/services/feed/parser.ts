@@ -7,9 +7,10 @@ import { ParserError } from "./types"
 export default async function feedParser(
   url: string,
   timeout: number = 5000,
+  signal?: AbortSignal,
 ): Promise<Feed> {
   let feedContent = ""
-  const response = await axios.get(url, { timeout })
+  const response = await axios.get(url, { timeout, signal })
   feedContent = response.data
   try {
     // TODO: Specify format when calling to improve performance

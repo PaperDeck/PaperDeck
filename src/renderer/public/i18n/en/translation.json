@@ -4,5 +4,7 @@
   "newFeedDescription": "Add a new feed to your list.",
   "add": "Add",
   "loading": "Loading...",
-  "feedParsingFailed": "Failed to parse the feed."
+  "feedParsingFailed": "Failed to parse the feed.",
+  "recentArticles": "Recent Articles",
+  "noArticlesFound": "No articles found."
 }
