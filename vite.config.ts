@@ -20,6 +20,12 @@ export default defineConfig({
         vite: {
           build: {
             outDir: path.join(__dirname, "dist/electron"),
+            rollupOptions: {
+              external: [
+                "better-sqlite3",
+                path.resolve(__dirname, "generated/prisma/client"),
+              ],
+            },
           },
           resolve: {
             alias: {
