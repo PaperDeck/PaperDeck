@@ -62,7 +62,6 @@ app.on("window-all-closed", () => {
 function wrapAsyncHandler<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: (...args: any[]) => Promise<T>,
-  errorPrefix: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): (...args: any[]) => Promise<ServiceResponse<T>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,7 +74,6 @@ function wrapAsyncHandler<T>(
         error: null,
       }
     } catch (err) {
-      console.error(`${errorPrefix}:`, err)
       let errorCode = undefined
       let errorDetails = undefined
       let stackTrace = undefined
@@ -122,7 +120,6 @@ function registerAsyncService<T>(channelName: string, service: T) {
         }
         return await method.apply(service, args)
       },
-      `Service Error [${channelName}]`,
     ),
   )
 }
@@ -136,6 +133,6 @@ function registerAsyncFunction<T extends (...args: any[]) => Promise<any>>(
     channelName,
     wrapAsyncHandler(async (_event: unknown, ...args: Parameters<T>) => {
       return await func(...args)
-    }, `Function Error [${channelName}]`),
+    }),
   )
 }
