@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url"
 import articleService from "@/electron/services/articleService"
 import feedService from "@/electron/services/feedService"
 import feedSyncService from "@/electron/services/feedSyncService"
-import feedParser from "./services/feed/parser"
+import feedParser from "@/electron/services/feedParser"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 

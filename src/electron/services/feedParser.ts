@@ -1,5 +1,23 @@
+import { parseFeed } from "feedsmith"
+import axios from "axios"
+import type { Feed, FeedItem } from "@/shared/types/feedParser"
+import { ParserError } from "@/shared/types/feedParser"
 import hashString from "@/electron/utils/hash"
-import type { Feed, FeedItem } from "../../../shared/types/feedParser"
+
+export default async function feedParser(
+  url: string,
+  timeout: number = 5000,
+): Promise<Feed> {
+  const response = await axios.get(url, { timeout })
+  const feedContent = response.data
+  try {
+    // TODO: Specify format when calling to improve performance
+    const { feed } = parseFeed(feedContent)
+    return normalizeFeed(feed, url)
+  } catch (_error) {
+    throw new ParserError("Feed Parsing Error")
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalizeFeed(feed: any, url: string): Feed {

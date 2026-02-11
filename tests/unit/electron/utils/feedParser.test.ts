@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest"
-import {
-  normalizeFeed,
-  normalizeItem,
-} from "@/electron/services/feed/normalizer"
+import { normalizeFeed, normalizeItem } from "@/electron/services/feedParser"
 
 describe("Feed Normalizer Units", () => {
   describe("normalizeItem", () => {
