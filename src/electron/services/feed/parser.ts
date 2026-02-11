@@ -1,8 +1,8 @@
 import { parseFeed } from "feedsmith"
 import axios from "axios"
-import type { Feed } from "./types"
+import type { Feed } from "../../../shared/types/feedParser"
 import { normalizeFeed } from "./normalizer"
-import { ParserError } from "./types"
+import { ParserError } from "../../../shared/types/feedParser"
 
 export default async function feedParser(
   url: string,

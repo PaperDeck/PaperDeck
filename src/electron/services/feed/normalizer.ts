@@ -1,5 +1,5 @@
 import hashString from "@/electron/utils/hash"
-import type { Feed, FeedItem } from "./types"
+import type { Feed, FeedItem } from "../../../shared/types/feedParser"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalizeFeed(feed: any, url: string): Feed {

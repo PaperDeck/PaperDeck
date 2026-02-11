@@ -13,8 +13,8 @@ import type { Mock } from "vitest"
 import feedSyncService from "@/electron/services/feedSyncService"
 import feedService from "@/electron/services/feedService"
 import articleService from "@/electron/services/articleService"
-import type { Feed } from "@/electron/services/feed/types"
-import { ParserError } from "@/electron/services/feed/types"
+import type { Feed } from "@/shared/types/feedParser"
+import { ParserError } from "@/shared/types/feedParser"
 import * as feedParserModule from "@/electron/services/feed/parser"
 
 const feedUrl = `https://example.com/${randomUUID()}`
