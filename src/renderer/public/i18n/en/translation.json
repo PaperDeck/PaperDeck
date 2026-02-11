@@ -3,8 +3,9 @@
   "newFeed": "Add new feed",
   "newFeedDescription": "Add a new feed to your list.",
   "add": "Add",
-  "loading": "Loading...",
+  "adding": "Adding...",
   "feedParsingFailed": "Failed to parse the feed.",
+  "failedToAddFeed": "Failed to add the feed.",
   "recentArticles": "Recent Articles",
   "noArticlesFound": "No articles found."
 }

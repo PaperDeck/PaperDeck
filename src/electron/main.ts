@@ -51,10 +51,10 @@ app.on("window-all-closed", () => {
 function registerService<T>(channelName: string, service: T) {
   ipcMain.handle(
     channelName,
-    (_event: unknown, methodName: keyof T, ...args: Array<unknown>) => {
+    async (_event: unknown, methodName: keyof T, ...args: Array<unknown>) => {
       if (service && typeof service[methodName] === "function") {
         try {
-          return service[methodName](...args)
+          return await service[methodName](...args)
         } catch (err) {
           console.error(
             `Service Error [${channelName}.${String(methodName)}]:`,

@@ -4,7 +4,11 @@ import { Button } from "@/renderer/components/ui/button"
 import { Dialog } from "@/renderer/components/ui/dialog"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
 import { useEffect, useState } from "react"
-import { useFeedParser } from "@/renderer/hooks/useApi"
+import {
+  useFeedParser,
+  useArticleService,
+  useFeedService,
+} from "@/renderer/hooks/useApi"
 import axios from "axios"
 import { useForm, Controller, useWatch } from "react-hook-form"
 import {
@@ -15,6 +19,7 @@ import {
 import { Rss } from "lucide-react"
 import type { Feed } from "@/electron/services/feed/types"
 import truncateText from "@/renderer/utils/truncateText"
+import { toast } from "react-hot-toast"
 
 interface FormData {
   url: string
@@ -37,26 +42,48 @@ export default function NewFeed({
   onOpenChange: (open: boolean) => void
 }) {
   const { t } = useTranslation()
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [parseSuccess, setParseSuccess] = useState<boolean | null>(null)
   const [feedResult, setFeedResult] = useState<Feed | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
   const feedParser = useFeedParser()
+  const articleService = useArticleService()
+  const feedService = useFeedService()
   const { control, handleSubmit } = useForm({
     defaultValues: {
       url: "",
     },
   })
   const handleAddFeed = (data: FormData) => {
-    //TODO: Add feed to the list
     console.log("Adding feed with URL:", data.url)
+    if (!feedResult) {
+      console.error("No feed result available to add.")
+      return
+    }
+    setIsAdding(true)
+    const addFeed = async () => {
+      try {
+        const newFeed = await feedService.addFeed(feedResult.title, data.url)
+        if (feedResult) {
+          await articleService.saveArticles(newFeed.url, feedResult.items)
+        }
+        onOpenChange(false)
+      } catch (_) {
+        toast.error(t("failedToAddFeed"))
+      } finally {
+        setIsAdding(false)
+      }
+    }
+    addFeed()
   }
   const url = useWatch({
     control,
     name: "url",
   })
   useEffect(() => {
+    setFeedResult(null)
+    setParseSuccess(null)
     if (url === "" || !isUrl(url)) {
-      setFeedResult(null)
       return
     }
     const controller = new AbortController()
@@ -65,10 +92,12 @@ export default function NewFeed({
       setFeedResult(null)
       try {
         const result = await feedParser(url, 5000, controller.signal)
+        setParseSuccess(true)
         setFeedResult(result)
       } catch (error) {
         if (!axios.isCancel(error)) {
           console.error(error)
+          setParseSuccess(false)
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -106,7 +135,6 @@ export default function NewFeed({
                   onChange={(e) => {
                     e.target.value = e.target.value.trim()
                     field.onChange(e)
-                    setIsButtonDisabled(e.target.value === "")
                   }}
                 />
               )}
@@ -146,12 +174,17 @@ export default function NewFeed({
                 </ul>
               </div>
             )}
+            {parseSuccess === false && (
+              <p className="text-sm text-red-500 mt-2">
+                {t("feedParsingFailed")}
+              </p>
+            )}
             <Button
               className="w-full mt-4"
-              disabled={isButtonDisabled}
+              disabled={isLoading || !parseSuccess || !feedResult || isAdding}
               type="submit"
             >
-              {t("Add")}
+              {isAdding ? t("adding") : t("add")}
             </Button>
           </form>
         </DialogContent>
