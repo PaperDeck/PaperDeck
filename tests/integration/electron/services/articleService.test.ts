@@ -1,17 +1,20 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest"
 import articleService from "@/electron/services/articleService"
 import feedService from "@/electron/services/feedService"
+import { randomUUID } from "crypto"
+
+const feedUrl = `https://example.com/${randomUUID()}`
 
 const testFeed = {
   title: "Test Feed",
-  url: "https://example.com/test-feed",
+  url: feedUrl,
 }
 
 const testArticles = [
   {
     id: "article-1",
     title: "Article 1",
-    link: "https://example.com/article-1",
+    link: `${feedUrl}/article-1`,
     summary: "Summary 1",
     content: "Content 1",
     image: "",
@@ -21,7 +24,7 @@ const testArticles = [
   {
     id: "article-2",
     title: "Article 2",
-    link: "https://example.com/article-2",
+    link: `${feedUrl}/article-2`,
     summary: "Summary 2",
     content: "Content 2",
     image: "",
@@ -30,25 +33,22 @@ const testArticles = [
   },
 ]
 
-let feedId: string
-
 beforeAll(async () => {
-  const feed = await feedService.addFeed(testFeed.title, testFeed.url)
-  feedId = feed.id
+  await feedService.addFeed(testFeed.title, testFeed.url)
 })
 
 afterAll(async () => {
-  await articleService.deleteAllArticlesByFeedId(feedId)
-  await feedService.deleteFeed(feedId)
+  await articleService.deleteAllArticlesByFeedUrl(feedUrl)
+  await feedService.deleteFeed(feedUrl)
 })
 
 beforeEach(async () => {
-  await articleService.deleteAllArticlesByFeedId(feedId)
+  await articleService.deleteAllArticlesByFeedUrl(feedUrl)
 })
 
 describe("ArticleService", () => {
   it("should save articles and upsert correctly", async () => {
-    const saved = await articleService.saveArticles(feedId, testArticles)
+    const saved = await articleService.saveArticles(feedUrl, testArticles)
     expect(saved).toHaveLength(2)
     expect(saved[0].id).toBe(testArticles[0].id)
     expect(saved[1].id).toBe(testArticles[1].id)
@@ -57,13 +57,13 @@ describe("ArticleService", () => {
       { ...testArticles[0], summary: "Updated Summary 1" },
       { ...testArticles[1], summary: "Updated Summary 2" },
     ]
-    const updated = await articleService.saveArticles(feedId, updatedArticles)
+    const updated = await articleService.saveArticles(feedUrl, updatedArticles)
     expect(updated[0].summary).toBe("Updated Summary 1")
     expect(updated[1].summary).toBe("Updated Summary 2")
   })
 
   it("should mark article as read", async () => {
-    await articleService.saveArticles(feedId, testArticles)
+    await articleService.saveArticles(feedUrl, testArticles)
     const article = testArticles[0]
     const updated = await articleService.markArticleAsRead(article.id)
     expect(updated.isRead).toBe(true)
@@ -71,18 +71,18 @@ describe("ArticleService", () => {
   })
 
   it("should get articles by feedId with correct order and limit", async () => {
-    await articleService.saveArticles(feedId, testArticles)
-    const articles = await articleService.getArticlesByFeedId(feedId, 2)
+    await articleService.saveArticles(feedUrl, testArticles)
+    const articles = await articleService.getArticlesByFeedUrl(feedUrl, 2)
     expect(articles).toHaveLength(2)
     expect(articles[0].id).toBe("article-2")
     expect(articles[1].id).toBe("article-1")
   })
 
   it("should delete all articles by feedId", async () => {
-    await articleService.saveArticles(feedId, testArticles)
-    const deleted = await articleService.deleteAllArticlesByFeedId(feedId)
+    await articleService.saveArticles(feedUrl, testArticles)
+    const deleted = await articleService.deleteAllArticlesByFeedUrl(feedUrl)
     expect(deleted.count).toBe(2)
-    const articles = await articleService.getArticlesByFeedId(feedId)
+    const articles = await articleService.getArticlesByFeedUrl(feedUrl)
     expect(articles).toHaveLength(0)
   })
 })

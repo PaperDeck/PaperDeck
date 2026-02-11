@@ -10,7 +10,9 @@ export function normalizeFeed(feed: any, url: string): Feed {
     feedUrl: url,
     language: feed.language ?? "",
     image: feed.icon ?? feed.favicon ?? feed.image?.url ?? "",
-    items: Array.isArray(feed.items) ? feed.items.map(normalizeItem) : [],
+    items: Array.isArray(feed.items ?? feed.entries)
+      ? feed.items.map(normalizeItem)
+      : [],
   }
 }
 
@@ -40,6 +42,6 @@ export function normalizeItem(item: any): FeedItem {
     rawDate: rawDate ?? "",
     datePublished,
     image: item.image ?? item.enclosure?.url ?? item.mediaContent?.url ?? "",
-    id: item.guid ?? item.id ?? item.link ?? hashString(fallbackSource),
+    id: item.guid?.value ?? item.id ?? item.link ?? hashString(fallbackSource),
   }
 }

@@ -5,15 +5,16 @@
   "type": "module",
   "main": "dist/electron/main.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run postinstall && vite",
     "build-vite": "tsc -b && vite build",
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
     "lint": "eslint .",
     "preview": "vite preview",
     "build": "npm run build-vite && electron-builder --dir",
     "prepare": "husky",
-    "test:unit": "vitest run tests/unit --coverage",
-    "test:integration": "vitest run tests/integration",
-    "test": "vitest run"
+    "test:unit": "npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
+    "test:integration": "npm rebuild better-sqlite3 && vitest run tests/integration",
+    "test": "npm rebuild better-sqlite3 && vitest run"
   },
   "build": {
     "appId": "com.reader.app",
@@ -40,8 +41,11 @@
     "i18next-http-backend": "^3.0.2",
     "lucide-react": "^0.563.0",
     "p-limit": "^7.2.0",
+    "radix-ui": "^1.4.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.71.1",
+    "react-hot-toast": "^2.6.0",
     "react-i18next": "^16.5.4",
     "react-router": "^7.13.0",
     "tailwind-merge": "^3.4.0",
@@ -52,6 +56,7 @@
     "*.{js,ts,vue}": "eslint --fix"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
     "@eslint/js": "^9.39.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.2.0",

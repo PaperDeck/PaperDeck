@@ -1,6 +1,6 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
-import electron from "vite-plugin-electron"
+import electron from "vite-plugin-electron/simple"
 import renderer from "vite-plugin-electron-renderer"
 import path from "path"
 import { fileURLToPath } from "url"
@@ -14,9 +14,28 @@ export default defineConfig({
   base: "./",
   plugins: [
     react(),
-    electron([
-      {
+    electron({
+      main: {
         entry: path.join(__dirname, "src/electron/main.ts"),
+        vite: {
+          build: {
+            outDir: path.join(__dirname, "dist/electron"),
+            rollupOptions: {
+              external: [
+                "better-sqlite3",
+                path.resolve(__dirname, "generated/prisma/client"),
+              ],
+            },
+          },
+          resolve: {
+            alias: {
+              "@": path.resolve(__dirname, "./src"),
+            },
+          },
+        },
+      },
+      preload: {
+        input: path.join(__dirname, "src/electron/preload.ts"),
         vite: {
           build: {
             outDir: path.join(__dirname, "dist/electron"),
@@ -24,7 +43,7 @@ export default defineConfig({
           },
         },
       },
-    ]),
+    }),
     renderer(),
     tailwindcss(),
   ],
