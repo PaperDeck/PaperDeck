@@ -8,6 +8,19 @@ import feedParser from "./services/feed/parser"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+export type ServiceResponse<T = unknown> =
+  | { success: true; data: T; error: null }
+  | {
+      success: false
+      data: null
+      error: {
+        message: string
+        code?: string | number
+        details?: unknown
+        stack?: string | undefined
+      }
+    }
+
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 800,
@@ -26,12 +39,10 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-  registerService("articleService", articleService)
-  registerService("feedService", feedService)
-  registerService("feedSyncService", feedSyncService)
-  ipcMain.handle("feedParser", async (_event, url: string) => {
-    return await feedParser(url)
-  })
+  registerAsyncService("articleService", articleService)
+  registerAsyncService("feedService", feedService)
+  registerAsyncService("feedSyncService", feedSyncService)
+  registerAsyncFunction("feedParser", feedParser)
 
   createWindow()
 
@@ -48,24 +59,83 @@ app.on("window-all-closed", () => {
   }
 })
 
-function registerService<T>(channelName: string, service: T) {
+function wrapAsyncHandler<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: (...args: any[]) => Promise<T>,
+  errorPrefix: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): (...args: any[]) => Promise<ServiceResponse<T>> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (...args: any[]): Promise<ServiceResponse<T>> => {
+    try {
+      const result = await handler(...args)
+      return {
+        success: true,
+        data: result,
+        error: null,
+      }
+    } catch (err) {
+      console.error(`${errorPrefix}:`, err)
+      let errorCode = undefined
+      let errorDetails = undefined
+      let stackTrace = undefined
+      if (err instanceof Error) {
+        stackTrace = err.stack
+      }
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "code" in err &&
+        (typeof err.code === "string" || typeof err.code === "number")
+      ) {
+        errorCode = err.code
+      }
+      if (typeof err === "object" && err !== null && "details" in err) {
+        errorDetails = err.details
+      }
+      return {
+        success: false,
+        data: null,
+        error: {
+          message: err instanceof Error ? err.message : String(err),
+          code: errorCode || "UNKNOWN_ERROR",
+          details: errorDetails,
+          stack: stackTrace,
+        },
+      }
+    }
+  }
+}
+
+function registerAsyncService<T>(channelName: string, service: T) {
   ipcMain.handle(
     channelName,
-    async (_event: unknown, methodName: keyof T, ...args: Array<unknown>) => {
-      if (service && typeof service[methodName] === "function") {
-        try {
-          return await service[methodName](...args)
-        } catch (err) {
-          console.error(
-            `Service Error [${channelName}.${String(methodName)}]:`,
-            err,
-          )
-          throw err
+    wrapAsyncHandler(
+      async (
+        _event: unknown,
+        methodName: keyof T,
+        ...args: Array<unknown>
+      ): Promise<unknown> => {
+        const method = service[methodName]
+        if (typeof method !== "function") {
+          throw new Error(`Method ${String(methodName)} not found on service`)
         }
-      }
-      throw new Error(
-        `Method ${String(methodName)} not found on ${channelName}`,
-      )
-    },
+        return await method.apply(service, args)
+      },
+      `Service Error [${channelName}]`,
+    ),
+  )
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function registerAsyncFunction<T extends (...args: any[]) => Promise<any>>(
+  channelName: string,
+  func: T,
+) {
+  ipcMain.handle(
+    channelName,
+    wrapAsyncHandler(async (_event: unknown, ...args: Parameters<T>) => {
+      return await func(...args)
+    }, `Function Error [${channelName}]`),
   )
 }

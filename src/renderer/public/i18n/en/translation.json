@@ -4,8 +4,10 @@
   "newFeedDescription": "Add a new feed to your list.",
   "add": "Add",
   "adding": "Adding...",
+  "feedAdded": "Feed added successfully.",
   "feedParsingFailed": "Failed to parse the feed.",
   "failedToAddFeed": "Failed to add the feed.",
   "recentArticles": "Recent Articles",
-  "noArticlesFound": "No articles found."
+  "noArticlesFound": "No articles found.",
+  "feedAlreadyExists": "This feed already exists in your list."
 }

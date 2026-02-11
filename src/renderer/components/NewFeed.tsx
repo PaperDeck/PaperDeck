@@ -9,7 +9,6 @@ import {
   useArticleService,
   useFeedService,
 } from "@/renderer/hooks/useApi"
-import axios from "axios"
 import { useForm, Controller, useWatch } from "react-hook-form"
 import {
   DialogContent,
@@ -55,24 +54,33 @@ export default function NewFeed({
     },
   })
   const handleAddFeed = (data: FormData) => {
-    console.log("Adding feed with URL:", data.url)
     if (!feedResult) {
       console.error("No feed result available to add.")
       return
     }
     setIsAdding(true)
     const addFeed = async () => {
-      try {
-        const newFeed = await feedService.addFeed(feedResult.title, data.url)
-        if (feedResult) {
-          await articleService.saveArticles(newFeed.url, feedResult.items)
+      const newFeed = await feedService.addFeed(feedResult.title, data.url)
+      if (!newFeed.success) {
+        if (newFeed.error.code === "P2002") {
+          toast.error(t("feedAlreadyExists"))
+        } else {
+          toast.error(t("failedToAddFeed"))
+          console.error("Failed to add feed:", newFeed.error)
         }
-        onOpenChange(false)
-      } catch (_) {
-        toast.error(t("failedToAddFeed"))
-      } finally {
         setIsAdding(false)
+        return
       }
+      const result = await articleService.saveArticles(
+        newFeed.url,
+        feedResult.items,
+      )
+      if (!result.success) {
+        console.error("Failed to save articles for the new feed:", result.error)
+      }
+      onOpenChange(false)
+      toast.success(t("feedAdded"))
+      setIsAdding(false)
     }
     addFeed()
   }
@@ -81,35 +89,29 @@ export default function NewFeed({
     name: "url",
   })
   useEffect(() => {
-    setFeedResult(null)
-    setParseSuccess(null)
     if (url === "" || !isUrl(url)) {
       return
     }
-    const controller = new AbortController()
+    let isCurrentRequest = true
     const fetchFeed = async () => {
       setIsLoading(true)
       setFeedResult(null)
-      try {
-        const result = await feedParser(url, 5000, controller.signal)
+      const result = await feedParser(url, 5000)
+      if (result.success) {
         setParseSuccess(true)
-        setFeedResult(result)
-      } catch (error) {
-        if (!axios.isCancel(error)) {
-          console.error(error)
-          setParseSuccess(false)
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false)
-        }
+      } else {
+        setParseSuccess(false)
+      }
+      if (isCurrentRequest) {
+        setIsLoading(false)
+        setFeedResult(result.data)
       }
     }
     const timer = setTimeout(() => {
       fetchFeed()
     }, 500)
     return () => {
-      controller.abort()
+      isCurrentRequest = false
       clearTimeout(timer)
     }
   }, [feedParser, t, url])
@@ -134,6 +136,8 @@ export default function NewFeed({
                   {...field}
                   onChange={(e) => {
                     e.target.value = e.target.value.trim()
+                    setFeedResult(null)
+                    setParseSuccess(null)
                     field.onChange(e)
                   }}
                 />
