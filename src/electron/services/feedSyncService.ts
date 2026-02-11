@@ -1,7 +1,7 @@
 import feedService from "@/electron/services/feedService"
 import pLimit from "p-limit"
-import feedParser from "@/electron/services/feed/parser"
-import { ParserError } from "@/electron/services/feed/types"
+import feedParser from "@/electron/services/feedParser"
+import { ParserError } from "@/shared/types/feedParser"
 import articleService from "@/electron/services/articleService"
 import axios from "axios"
 

@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/renderer/components/ui/dialog"
 import { Rss } from "lucide-react"
-import type { Feed } from "@/electron/services/feed/types"
+import type { Feed } from "@/shared/types/feedParser"
 import truncateText from "@/renderer/utils/truncateText"
 import { toast } from "react-hot-toast"
 

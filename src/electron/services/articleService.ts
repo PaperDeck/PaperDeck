@@ -1,5 +1,5 @@
 import { prisma } from "@/electron/utils/prisma"
-import type { FeedItem } from "@/electron/services/feed/types"
+import type { FeedItem } from "@/shared/types/feedParser"
 
 class ArticleService {
   async saveArticles(feedUrl: string, articles: FeedItem[]) {

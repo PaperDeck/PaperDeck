@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron"
-import type { FeedItem } from "@/electron/services/feed/types"
+import type { FeedItem } from "@/shared/types/feedParser"
 
 const api = {
   articleService: {
