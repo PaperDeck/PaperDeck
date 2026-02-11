@@ -48,11 +48,23 @@ export default function NewFeed({
   const feedParser = useFeedParser()
   const articleService = useArticleService()
   const feedService = useFeedService()
-  const { control, handleSubmit } = useForm({
+  const { control, handleSubmit, setValue } = useForm({
     defaultValues: {
       url: "",
     },
   })
+  const handleDialogOpenChange = (open: boolean) => {
+    if (isAdding && !open) {
+      return
+    }
+    onOpenChange(open)
+    if (!open) {
+      setFeedResult(null)
+      setParseSuccess(null)
+      setIsLoading(false)
+      setValue("url", "")
+    }
+  }
   const handleAddFeed = (data: FormData) => {
     if (!feedResult) {
       console.error("No feed result available to add.")
@@ -117,7 +129,7 @@ export default function NewFeed({
   }, [feedParser, t, url])
   return (
     <div className="flex items-center justify-center overflow-y-auto max-w-md">
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="max-h-[90%] overflow-y-auto">
           <div className="flex flex-col items-center">
             <Rss className="w-12 h-12 mb-4" />
@@ -132,7 +144,6 @@ export default function NewFeed({
                 <Input
                   placeholder="https://example.com/rss"
                   className="w-full"
-                  readOnly={isLoading}
                   {...field}
                   onChange={(e) => {
                     e.target.value = e.target.value.trim()
