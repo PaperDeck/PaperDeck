@@ -21,6 +21,7 @@ export default async function feedParser(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalizeFeed(feed: any, url: string): Feed {
+  const rawItems = feed.items ?? feed.entries ?? []
   return {
     title: feed.title ?? "",
     description: feed.description ?? feed.subtitle ?? "",
@@ -28,9 +29,7 @@ export function normalizeFeed(feed: any, url: string): Feed {
     feedUrl: url,
     language: feed.language ?? "",
     image: feed.icon ?? feed.favicon ?? feed.image?.url ?? "",
-    items: Array.isArray(feed.items ?? feed.entries)
-      ? feed.items.map(normalizeItem)
-      : [],
+    items: Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [],
   }
 }
 
