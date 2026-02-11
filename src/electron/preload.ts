@@ -33,8 +33,8 @@ const api = {
   feedSyncService: {
     syncFeeds: () => ipcRenderer.invoke("feedSyncService", "syncFeeds"),
   },
-  feedParser: (url: string, timeout?: number, signal?: AbortSignal) =>
-    ipcRenderer.invoke("feedParser", url, timeout, signal),
+  feedParser: (url: string, timeout?: number) =>
+    ipcRenderer.invoke("feedParser", url, timeout),
 }
 
 contextBridge.exposeInMainWorld("ipcBridge", api)
