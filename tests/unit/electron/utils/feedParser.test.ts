@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest"
-import { normalizeFeed, normalizeItem } from "@/electron/services/feedParser"
+import { enrichItem } from "@/electron/services/feedParser"
+import type Parser from "rss-parser"
 
-describe("Feed Normalizer Units", () => {
-  describe("normalizeItem", () => {
-    it("should map standard fields correctly", () => {
-      const rawItem = {
+describe("Feed Parser - Item Enrichment", () => {
+  describe("enrichItem", () => {
+    it("should add id, datePublished and image to items", () => {
+      const item: Parser.Item = {
         title: "Hello World",
         link: "https://example.com/post",
         content: "<p>Content</p>",
@@ -12,159 +13,123 @@ describe("Feed Normalizer Units", () => {
         guid: "item-123",
       }
 
-      const result = normalizeItem(rawItem)
+      const result = enrichItem(item)
 
-      expect(result.title).toBe("Hello World")
       expect(result.id).toBe("item-123")
+      expect(result.title).toBe("Hello World")
+      expect(result.link).toBe("https://example.com/post")
       expect(result.datePublished).toEqual(new Date("2024-05-20T10:00:00Z"))
+      expect(result.image).toBe("")
+      // Verify original fields are preserved
+      expect(result.content).toBe("<p>Content</p>")
     })
 
-    it("should prioritize contentEncoded over content, contentSnippet and summary", () => {
-      const rawItem = {
-        contentEncoded: "Encoded Content",
-        content: "Content",
-        contentSnippet: "Snippet Content",
-        summary: "Summary Content",
-      }
-      const result = normalizeItem(rawItem)
-      expect(result.content).toBe("Encoded Content")
-    })
-
-    it("should extract images from enclosures if available", () => {
-      const rawItem = {
+    it("should extract images from enclosures", () => {
+      const item: Parser.Item = {
+        title: "Post with image",
         enclosure: { url: "https://example.com/image.jpg" },
       }
-      const result = normalizeItem(rawItem)
+
+      const result = enrichItem(item)
+
       expect(result.image).toBe("https://example.com/image.jpg")
     })
 
-    it("should generate an ID if no unique identifier is provided", () => {
-      const rawItem = {
+    it("should generate ID when guid and link are missing", () => {
+      const item: Parser.Item = {
         title: "No ID Post",
         pubDate: "2024-01-01",
       }
-      const result = normalizeItem(rawItem)
+
+      const result = enrichItem(item)
+
       expect(result.id).toBeDefined()
+      expect(result.id).not.toBe("")
     })
 
-    it("should return undefined for invalid date formats", () => {
-      const rawItem = { pubDate: "not-a-date" }
-      const result = normalizeItem(rawItem)
-      expect(result.datePublished).toBeUndefined()
-    })
+    it("should use link as ID when guid is missing", () => {
+      const item: Parser.Item = {
+        link: "https://test.com/1",
+      }
 
-    it("should fallback to content if contentEncoded is missing", () => {
-      const result = normalizeItem({ content: "<b>HTML</b>" })
-      expect(result.content).toBe("<b>HTML</b>")
-    })
+      const result = enrichItem(item)
 
-    it("should use link as ID if guid is missing", () => {
-      const result = normalizeItem({ link: "https://test.com/1" })
       expect(result.id).toBe("https://test.com/1")
     })
 
-    it("should try multiple date fields and save rawDate", () => {
-      const rawItem = { pubDate: "2024-06-01" }
-      const result = normalizeItem(rawItem)
-      expect(result.datePublished).toEqual(new Date("2024-06-01"))
-      expect(result.rawDate).toBe("2024-06-01")
-    })
+    it("should return undefined for invalid date formats", () => {
+      const item: Parser.Item = {
+        pubDate: "not-a-date",
+        link: "test",
+      }
 
-    it("should support mediaContent as an image source", () => {
-      const rawItem = { mediaContent: { url: "https://example.com/media.jpg" } }
-      const result = normalizeItem(rawItem)
-      expect(result.image).toBe("https://example.com/media.jpg")
+      const result = enrichItem(item)
+
+      expect(result.datePublished).toBeUndefined()
     })
 
     it("should fallback to isoDate when pubDate is missing", () => {
-      const rawItem = { isoDate: "2024-07-01T12:00:00.000Z" }
-      const result = normalizeItem(rawItem)
-      expect(result.datePublished).toEqual(new Date("2024-07-01T12:00:00.000Z"))
-      expect(result.rawDate).toBe("2024-07-01T12:00:00.000Z")
-    })
-
-    it("should use contentSnippet for summary if available", () => {
-      const rawItem = {
-        contentSnippet: "Snippet text",
-        summary: "Summary text",
-      }
-      const result = normalizeItem(rawItem)
-      expect(result.summary).toBe("Snippet text")
-    })
-  })
-
-  describe("normalizeFeed", () => {
-    const mockUrl = "https://example.com/feed.rss"
-
-    it("should normalize top-level feed metadata", () => {
-      const rawFeed = {
-        title: "My Blog",
-        description: "A cool blog",
-        link: "https://example.com",
-        image: { url: "https://example.com/icon.png" },
-        items: [],
+      const item: Parser.Item = {
+        isoDate: "2024-07-01T12:00:00.000Z",
+        link: "test",
       }
 
-      const result = normalizeFeed(rawFeed, mockUrl)
+      const result = enrichItem(item)
 
-      expect(result.title).toBe("My Blog")
-      expect(result.feedUrl).toBe(mockUrl)
-      expect(result.image).toBe("https://example.com/icon.png")
+      expect(result.datePublished).toEqual(
+        new Date("2024-07-01T12:00:00.000Z"),
+      )
     })
 
-    it("should handle missing items by returning an empty array", () => {
-      const rawFeed = { title: "Empty Feed" }
-      const result = normalizeFeed(rawFeed, mockUrl)
-      expect(result.items).toEqual([])
-    })
-
-    it("should correctly map description field", () => {
-      const rawFeed = {
-        title: "Desc Feed",
-        description: "The description",
+    it("should support mediaContent as an image source", () => {
+      const item = {
+        link: "test",
+        mediaContent: { url: "https://example.com/media.jpg" },
       }
-      const result = normalizeFeed(rawFeed, mockUrl)
-      expect(result.description).toBe("The description")
+
+      const result = enrichItem(item)
+
+      expect(result.image).toBe("https://example.com/media.jpg")
     })
 
-    it("should process a list of items", () => {
-      const rawFeed = {
-        title: "Feed with Items",
-        items: [
-          { title: "Item 1", link: "link1" },
-          { title: "Item 2", link: "link2" },
-        ],
+    it("should preserve all rss-parser fields", () => {
+      const item: Parser.Item = {
+        title: "Test Article",
+        link: "https://example.com/article",
+        guid: "article-123",
+        pubDate: "2024-01-01",
+        creator: "John Doe",
+        summary: "Article summary",
+        content: "<p>Full content</p>",
+        contentSnippet: "Plain text content",
+        categories: ["tech", "news"],
       }
-      const result = normalizeFeed(rawFeed, mockUrl)
-      expect(result.items).toHaveLength(2)
-      expect(result.items[0].title).toBe("Item 1")
-      expect(result.items[1].link).toBe("link2")
+
+      const result = enrichItem(item)
+
+      // All original fields should be preserved
+      expect(result.title).toBe("Test Article")
+      expect(result.link).toBe("https://example.com/article")
+      expect(result.creator).toBe("John Doe")
+      expect(result.summary).toBe("Article summary")
+      expect(result.content).toBe("<p>Full content</p>")
+      expect(result.contentSnippet).toBe("Plain text content")
+      expect(result.categories).toEqual(["tech", "news"])
+      // Plus our enrichments
+      expect(result.id).toBe("article-123")
+      expect(result.datePublished).toBeDefined()
+      expect(result.image).toBe("")
     })
 
-    it("should handle nested image objects and language in feed", () => {
-      const rawFeed = {
-        title: "Complex Feed",
-        language: "zh-TW",
-        image: { url: "https://example.com/deep-image.png" },
+    it("should handle contentEncoded custom field", () => {
+      const item = {
+        link: "test",
+        contentEncoded: "<div>Rich HTML content</div>",
       }
-      const result = normalizeFeed(rawFeed, "url")
-      expect(result.language).toBe("zh-TW")
-      expect(result.image).toBe("https://example.com/deep-image.png")
-    })
 
-    it("should use link field from feed", () => {
-      const rawFeed = { link: "https://example.com/home" }
-      const result = normalizeFeed(rawFeed, "url")
-      expect(result.link).toBe("https://example.com/home")
-    })
+      const result = enrichItem(item)
 
-    it("should fallback to itunes image if image.url is not available", () => {
-      const rawFeed = {
-        title: "Podcast Feed",
-        itunes: { image: "https://example.com/podcast-image.jpg" },
-      }
-      const result = normalizeFeed(rawFeed, mockUrl)
-      expect(result.image).toBe("https://example.com/podcast-image.jpg")
+      expect(result.contentEncoded).toBe("<div>Rich HTML content</div>")
     })
   })
 })

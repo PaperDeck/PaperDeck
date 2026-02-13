@@ -19,66 +19,36 @@ export default async function feedParser(
 
   try {
     const feed = await parser.parseURL(url)
-    return normalizeFeed(feed, url)
+    // Only enrich items with id, datePublished, and image
+    return {
+      ...feed,
+      items: feed.items.map(enrichItem),
+    }
   } catch (_error) {
     throw new ParserError("Feed Parsing Error")
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function normalizeFeed(feed: any, url: string): Feed {
-  const rawItems = feed.items ?? []
+// Export for testing
+export function enrichItem(item: Parser.Item & {contentEncoded?: string, mediaContent?: {url: string}}): FeedItem {
+  // Generate ID from guid, link, or hash as fallback
+  const id = item.guid ?? item.link ?? hashString([item.pubDate, item.isoDate, item.title].filter(Boolean).join("|"))
   
-  // Extract image URL ensuring it's always a string
-  let imageUrl = ""
-  if (feed.image) {
-    if (typeof feed.image === "string") {
-      imageUrl = feed.image
-    } else if (feed.image.url) {
-      imageUrl = feed.image.url
-    } else if (feed.image.link) {
-      imageUrl = feed.image.link
-    }
-  }
-  if (!imageUrl && feed.itunes?.image) {
-    imageUrl = feed.itunes.image
-  }
-  
-  return {
-    title: feed.title ?? "",
-    description: feed.description ?? "",
-    link: feed.link ?? "",
-    feedUrl: url,
-    language: feed.language ?? "",
-    image: imageUrl,
-    items: Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [],
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function normalizeItem(item: any): FeedItem {
-  const fallbackSource = [item.pubDate, item.isoDate, item.title]
-    .filter(Boolean)
-    .join("|")
-  const rawDate = item.pubDate ?? item.isoDate ?? ""
-  let datePublished = undefined
+  // Convert date string to Date object
+  let datePublished: Date | undefined
+  const rawDate = item.pubDate ?? item.isoDate
   if (rawDate) {
     const parsed = new Date(rawDate)
     datePublished = !isNaN(parsed.getTime()) ? parsed : undefined
   }
+  
+  // Extract image URL
+  const image = item.enclosure?.url ?? item.mediaContent?.url ?? ""
+  
   return {
-    title: item.title ?? "",
-    link: item.link ?? "",
-    content:
-      item.contentEncoded ??
-      item.content ??
-      item.contentSnippet ??
-      item.summary ??
-      "",
-    summary: item.contentSnippet ?? item.summary ?? "",
-    rawDate: rawDate,
+    ...item,
+    id,
     datePublished,
-    image: item.enclosure?.url ?? item.mediaContent?.url ?? "",
-    id: item.guid ?? item.link ?? hashString(fallbackSource),
+    image,
   }
 }
