@@ -20,7 +20,7 @@ model Feed {
 model Article {
   id      String    @id
   title   String
-  link    String    @unique
+  link    String
   summary String?
   content String?
   pubDate DateTime?
