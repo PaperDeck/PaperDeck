@@ -85,7 +85,7 @@ export default function NewFeed({
         return
       }
       const result = await articleService.saveArticles(
-        newFeed.url,
+        data.url,
         feedResult.items,
       )
       if (!result.success) {

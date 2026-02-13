@@ -18,7 +18,9 @@ class ArticleService {
           summary: article.summary,
           pubDate: article.datePublished,
           isRead: false,
-          feedUrl,
+          feed: {
+            connect: { url: feedUrl },
+          },
         },
       })
     })
