@@ -19,6 +19,7 @@ import { Rss } from "lucide-react"
 import type { Feed } from "@/shared/types/feedParser"
 import truncateText from "@/renderer/utils/truncateText"
 import { toast } from "react-hot-toast"
+import extractText from "@/renderer/utils/extractText"
 
 interface FormData {
   url: string
@@ -182,8 +183,10 @@ export default function NewFeed({
                       key={article.id}
                       className="mb-3 shadow p-2 rounded bg-white"
                     >
-                      <div className="text-lg">{article.title}</div>
-                      <div>{truncateText(article.summary, 50)}</div>
+                      <div className="text-lg mb-3">{article.title}</div>
+                      <div>
+                        {truncateText(extractText(article.summary), 50)}
+                      </div>
                     </li>
                   ))}
                 </ul>
