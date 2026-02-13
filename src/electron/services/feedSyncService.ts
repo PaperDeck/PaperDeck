@@ -21,12 +21,15 @@ class FeedSyncService {
           if (error instanceof ParserError) {
             console.error(`Failed to parse feed ${feed.url}: ${error.message}`)
           } else if (error instanceof Error) {
-            // Handle network errors and other errors from rss-parser
+            // Check for Node.js network error codes
+            const nodeError = error as NodeJS.ErrnoException
             if (
+              nodeError.code === "ENOTFOUND" ||
+              nodeError.code === "ETIMEDOUT" ||
+              nodeError.code === "ECONNREFUSED" ||
+              nodeError.code === "ECONNRESET" ||
               error.message.includes("Status code") ||
-              error.message.includes("redirect") ||
-              error.message.includes("ENOTFOUND") ||
-              error.message.includes("ETIMEDOUT")
+              error.message.includes("redirect")
             ) {
               console.error(
                 `Network error while fetching feed ${feed.url}: ${error.message}`,

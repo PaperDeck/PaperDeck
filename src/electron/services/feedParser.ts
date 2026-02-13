@@ -28,14 +28,29 @@ export default async function feedParser(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalizeFeed(feed: any, url: string): Feed {
   const rawItems = feed.items ?? []
+  
+  // Extract image URL ensuring it's always a string
+  let imageUrl = ""
+  if (feed.image) {
+    if (typeof feed.image === "string") {
+      imageUrl = feed.image
+    } else if (feed.image.url) {
+      imageUrl = feed.image.url
+    } else if (feed.image.link) {
+      imageUrl = feed.image.link
+    }
+  }
+  if (!imageUrl && feed.itunes?.image) {
+    imageUrl = feed.itunes.image
+  }
+  
   return {
     title: feed.title ?? "",
     description: feed.description ?? "",
     link: feed.link ?? "",
     feedUrl: url,
     language: feed.language ?? "",
-    image:
-      feed.image?.url ?? feed.itunes?.image ?? feed.image?.link ?? feed.image ?? "",
+    image: imageUrl,
     items: Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [],
   }
 }
