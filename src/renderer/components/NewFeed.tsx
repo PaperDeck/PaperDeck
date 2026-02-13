@@ -183,7 +183,7 @@ export default function NewFeed({
                       key={article.id}
                       className="mb-3 shadow p-2 rounded bg-white"
                     >
-                      <div className="text-lg ">{article.title}</div>
+                      <div className="text-lg mb-3">{article.title}</div>
                       <div>
                         {truncateText(extractText(article.summary), 50)}
                       </div>
