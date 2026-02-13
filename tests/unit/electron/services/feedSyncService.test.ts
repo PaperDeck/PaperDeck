@@ -90,8 +90,8 @@ describe("FeedSyncService", () => {
   })
 
   it("should handle network errors gracefully", async () => {
-    const axiosError = { isAxiosError: true, message: "Network fail" }
-    vi.spyOn(feedParserModule, "default").mockRejectedValue(axiosError)
+    const networkError = new Error("Status code 404")
+    vi.spyOn(feedParserModule, "default").mockRejectedValue(networkError)
 
     await feedSyncService.syncFeeds()
     expect(consoleErrorSpy).toHaveBeenCalledWith(

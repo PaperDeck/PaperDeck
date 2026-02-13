@@ -7,9 +7,9 @@ describe("Feed Normalizer Units", () => {
       const rawItem = {
         title: "Hello World",
         link: "https://example.com/post",
-        content_html: "<p>Content</p>",
-        date_published: "2024-05-20T10:00:00Z",
-        guid: { value: "item-123" },
+        content: "<p>Content</p>",
+        pubDate: "2024-05-20T10:00:00Z",
+        guid: "item-123",
       }
 
       const result = normalizeItem(rawItem)
@@ -19,17 +19,18 @@ describe("Feed Normalizer Units", () => {
       expect(result.datePublished).toEqual(new Date("2024-05-20T10:00:00Z"))
     })
 
-    it("should prioritize content_text over description and summary", () => {
+    it("should prioritize contentEncoded over content, contentSnippet and summary", () => {
       const rawItem = {
-        content_text: "Text Content",
-        description: "Description Content",
+        contentEncoded: "Encoded Content",
+        content: "Content",
+        contentSnippet: "Snippet Content",
         summary: "Summary Content",
       }
       const result = normalizeItem(rawItem)
-      expect(result.content).toBe("Text Content")
+      expect(result.content).toBe("Encoded Content")
     })
 
-    it("should extract images from enclosures if top-level image is missing", () => {
+    it("should extract images from enclosures if available", () => {
       const rawItem = {
         enclosure: { url: "https://example.com/image.jpg" },
       }
@@ -40,24 +41,24 @@ describe("Feed Normalizer Units", () => {
     it("should generate an ID if no unique identifier is provided", () => {
       const rawItem = {
         title: "No ID Post",
-        published: "2024-01-01",
+        pubDate: "2024-01-01",
       }
       const result = normalizeItem(rawItem)
       expect(result.id).toBeDefined()
     })
 
-    it("should return an empty string for invalid date formats", () => {
-      const rawItem = { date_published: "not-a-date" }
+    it("should return undefined for invalid date formats", () => {
+      const rawItem = { pubDate: "not-a-date" }
       const result = normalizeItem(rawItem)
       expect(result.datePublished).toBeUndefined()
     })
 
-    it("should fallback to content_html if content_text is missing", () => {
-      const result = normalizeItem({ content_html: "<b>HTML</b>" })
+    it("should fallback to content if contentEncoded is missing", () => {
+      const result = normalizeItem({ content: "<b>HTML</b>" })
       expect(result.content).toBe("<b>HTML</b>")
     })
 
-    it("should use link as ID if guid and id are missing", () => {
+    it("should use link as ID if guid is missing", () => {
       const result = normalizeItem({ link: "https://test.com/1" })
       expect(result.id).toBe("https://test.com/1")
     })
@@ -74,6 +75,22 @@ describe("Feed Normalizer Units", () => {
       const result = normalizeItem(rawItem)
       expect(result.image).toBe("https://example.com/media.jpg")
     })
+
+    it("should fallback to isoDate when pubDate is missing", () => {
+      const rawItem = { isoDate: "2024-07-01T12:00:00.000Z" }
+      const result = normalizeItem(rawItem)
+      expect(result.datePublished).toEqual(new Date("2024-07-01T12:00:00.000Z"))
+      expect(result.rawDate).toBe("2024-07-01T12:00:00.000Z")
+    })
+
+    it("should use contentSnippet for summary if available", () => {
+      const rawItem = {
+        contentSnippet: "Snippet text",
+        summary: "Summary text",
+      }
+      const result = normalizeItem(rawItem)
+      expect(result.summary).toBe("Snippet text")
+    })
   })
 
   describe("normalizeFeed", () => {
@@ -83,8 +100,8 @@ describe("Feed Normalizer Units", () => {
       const rawFeed = {
         title: "My Blog",
         description: "A cool blog",
-        home_page_url: "https://example.com",
-        icon: "https://example.com/icon.png",
+        link: "https://example.com",
+        image: { url: "https://example.com/icon.png" },
         items: [],
       }
 
@@ -101,13 +118,13 @@ describe("Feed Normalizer Units", () => {
       expect(result.items).toEqual([])
     })
 
-    it("should correctly map fallback fields for description (subtitle)", () => {
+    it("should correctly map description field", () => {
       const rawFeed = {
-        title: "Subtitle Feed",
-        subtitle: "The fallback description",
+        title: "Desc Feed",
+        description: "The description",
       }
       const result = normalizeFeed(rawFeed, mockUrl)
-      expect(result.description).toBe("The fallback description")
+      expect(result.description).toBe("The description")
     })
 
     it("should process a list of items", () => {
@@ -135,10 +152,19 @@ describe("Feed Normalizer Units", () => {
       expect(result.image).toBe("https://example.com/deep-image.png")
     })
 
-    it("should fallback to link if home_page_url is missing", () => {
+    it("should use link field from feed", () => {
       const rawFeed = { link: "https://example.com/home" }
       const result = normalizeFeed(rawFeed, "url")
       expect(result.link).toBe("https://example.com/home")
+    })
+
+    it("should fallback to itunes image if image.url is not available", () => {
+      const rawFeed = {
+        title: "Podcast Feed",
+        itunes: { image: "https://example.com/podcast-image.jpg" },
+      }
+      const result = normalizeFeed(rawFeed, mockUrl)
+      expect(result.image).toBe("https://example.com/podcast-image.jpg")
     })
   })
 })

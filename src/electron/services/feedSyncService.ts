@@ -3,7 +3,6 @@ import pLimit from "p-limit"
 import feedParser from "@/electron/services/feedParser"
 import { ParserError } from "@/shared/types/feedParser"
 import articleService from "@/electron/services/articleService"
-import axios from "axios"
 
 // TODO: Let user configure concurrency limit
 const DEFAULT_CONCURRENCY_LIMIT = 25
@@ -21,10 +20,22 @@ class FeedSyncService {
         } catch (error) {
           if (error instanceof ParserError) {
             console.error(`Failed to parse feed ${feed.url}: ${error.message}`)
-          } else if (axios.isAxiosError(error)) {
-            console.error(
-              `Network error while fetching feed ${feed.url}: ${error.message}`,
-            )
+          } else if (error instanceof Error) {
+            // Handle network errors and other errors from rss-parser
+            if (
+              error.message.includes("Status code") ||
+              error.message.includes("redirect") ||
+              error.message.includes("ENOTFOUND") ||
+              error.message.includes("ETIMEDOUT")
+            ) {
+              console.error(
+                `Network error while fetching feed ${feed.url}: ${error.message}`,
+              )
+            } else {
+              console.error(
+                `Unexpected error while syncing feed ${feed.url}: ${error.message}`,
+              )
+            }
           } else {
             console.error(
               `Unexpected error while syncing feed ${feed.url}: ${error}`,

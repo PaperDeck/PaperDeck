@@ -1,5 +1,4 @@
-import { parseFeed } from "feedsmith"
-import axios from "axios"
+import Parser from "rss-parser"
 import type { Feed, FeedItem } from "@/shared/types/feedParser"
 import { ParserError } from "@/shared/types/feedParser"
 import hashString from "@/electron/utils/hash"
@@ -8,11 +7,18 @@ export default async function feedParser(
   url: string,
   timeout: number = 5000,
 ): Promise<Feed> {
-  const response = await axios.get(url, { timeout })
-  const feedContent = response.data
+  const parser = new Parser({
+    timeout,
+    customFields: {
+      item: [
+        ["media:content", "mediaContent"],
+        ["content:encoded", "contentEncoded"],
+      ],
+    },
+  })
+
   try {
-    // TODO: Specify format when calling to improve performance
-    const { feed } = parseFeed(feedContent)
+    const feed = await parser.parseURL(url)
     return normalizeFeed(feed, url)
   } catch (_error) {
     throw new ParserError("Feed Parsing Error")
@@ -21,25 +27,25 @@ export default async function feedParser(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalizeFeed(feed: any, url: string): Feed {
-  const rawItems = feed.items ?? feed.entries ?? []
+  const rawItems = feed.items ?? []
   return {
     title: feed.title ?? "",
-    description: feed.description ?? feed.subtitle ?? "",
-    link: feed.home_page_url ?? feed.link ?? "",
+    description: feed.description ?? "",
+    link: feed.link ?? "",
     feedUrl: url,
     language: feed.language ?? "",
-    image: feed.icon ?? feed.favicon ?? feed.image?.url ?? "",
+    image:
+      feed.image?.url ?? feed.itunes?.image ?? feed.image?.link ?? feed.image ?? "",
     items: Array.isArray(rawItems) ? rawItems.map(normalizeItem) : [],
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function normalizeItem(item: any): FeedItem {
-  const fallbackSource = [item.published, item.updated, item.title]
+  const fallbackSource = [item.pubDate, item.isoDate, item.title]
     .filter(Boolean)
     .join("|")
-  const rawDate =
-    item.date_published ?? item.published ?? item.pubDate ?? item.date
+  const rawDate = item.pubDate ?? item.isoDate ?? ""
   let datePublished = undefined
   if (rawDate) {
     const parsed = new Date(rawDate)
@@ -49,16 +55,15 @@ export function normalizeItem(item: any): FeedItem {
     title: item.title ?? "",
     link: item.link ?? "",
     content:
-      item.content_text ??
-      item.content_html ??
+      item.contentEncoded ??
       item.content ??
-      item.description ??
+      item.contentSnippet ??
       item.summary ??
       "",
-    summary: item.summary ?? item.description ?? "",
-    rawDate: rawDate ?? "",
+    summary: item.contentSnippet ?? item.summary ?? "",
+    rawDate: rawDate,
     datePublished,
-    image: item.image ?? item.enclosure?.url ?? item.mediaContent?.url ?? "",
-    id: item.guid?.value ?? item.id ?? item.link ?? hashString(fallbackSource),
+    image: item.enclosure?.url ?? item.mediaContent?.url ?? "",
+    id: item.guid ?? item.link ?? hashString(fallbackSource),
   }
 }
