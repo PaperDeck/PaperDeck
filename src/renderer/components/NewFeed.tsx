@@ -90,7 +90,7 @@ export default function NewFeed({
       if (!result.success) {
         console.error("Failed to save articles for the new feed:", result.error)
       }
-      onOpenChange(false)
+      handleDialogOpenChange(false)
       toast.success(t("feedAdded"))
       setIsAdding(false)
     }
