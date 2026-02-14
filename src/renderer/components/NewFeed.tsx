@@ -16,10 +16,10 @@ import {
   DialogTitle,
 } from "@/renderer/components/ui/dialog"
 import { Rss } from "lucide-react"
-import type { Feed } from "@/shared/types/feedParser"
 import truncateText from "@/renderer/utils/truncateText"
 import { toast } from "react-hot-toast"
 import extractText from "@/renderer/utils/extractText"
+import type Parser from "rss-parser"
 
 interface FormData {
   url: string
@@ -44,7 +44,8 @@ export default function NewFeed({
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [parseSuccess, setParseSuccess] = useState<boolean | null>(null)
-  const [feedResult, setFeedResult] = useState<Feed | null>(null)
+  const [feedResult, setFeedResult] =
+    useState<Parser.Output<Parser.Item> | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const feedParser = useFeedParser()
   const articleService = useArticleService()
@@ -73,7 +74,10 @@ export default function NewFeed({
     }
     setIsAdding(true)
     const addFeed = async () => {
-      const newFeed = await feedService.addFeed(feedResult.title, data.url)
+      const newFeed = await feedService.addFeed(
+        feedResult.title || "",
+        data.url,
+      )
       if (!newFeed.success) {
         if (newFeed.error.code === "P2002") {
           toast.error(t("feedAlreadyExists"))
@@ -180,12 +184,15 @@ export default function NewFeed({
                 <ul>
                   {feedResult.items.slice(0, 5).map((article) => (
                     <li
-                      key={article.id}
+                      key={article.guid || article.link}
                       className="mb-3 shadow p-2 rounded bg-white"
                     >
                       <div className="text-lg mb-3">{article.title}</div>
                       <div>
-                        {truncateText(extractText(article.summary), 50)}
+                        {truncateText(
+                          extractText(article.contentSnippet || ""),
+                          50,
+                        )}
                       </div>
                     </li>
                   ))}

@@ -13,9 +13,9 @@ import type { Mock } from "vitest"
 import feedSyncService from "@/electron/services/feedSyncService"
 import feedService from "@/electron/services/feedService"
 import articleService from "@/electron/services/articleService"
-import type { Feed } from "@/shared/types/feedParser"
 import { ParserError } from "@/shared/types/feedParser"
 import * as feedParserModule from "@/electron/services/feedParser"
+import type Parser from "rss-parser"
 
 const feedUrl = `https://example.com/${randomUUID()}`
 
@@ -25,23 +25,20 @@ const testFeed = {
   createdAt: new Date(),
 }
 
-const parsedFeed = {
+const parsedFeed: Parser.Output<Record<string, unknown>> = {
   title: "FeedSync Test Feed Title",
   description: "desc",
   link: feedUrl,
   feedUrl: feedUrl,
-  language: "en",
-  image: "",
   items: [
     {
-      id: "sync-article-1",
+      guid: "sync-article-1",
       title: "Sync Article 1",
       link: "https://example.com/sync-article-1",
       content: "Content 1",
-      summary: "Summary 1",
-      datePublished: new Date("2023-01-01T00:00:00Z"),
-      image: "",
-      rawDate: "2023-01-01T00:00:00Z",
+      contentSnippet: "Summary 1",
+      isoDate: "2023-01-01T00:00:00Z",
+      pubDate: "2023-01-01T00:00:00Z",
     },
   ],
 }
@@ -64,7 +61,7 @@ afterEach(() => {
 
 describe("FeedSyncService", () => {
   it("should sync feeds and save articles", async () => {
-    vi.spyOn(feedParserModule, "default").mockResolvedValue(parsedFeed as Feed)
+    vi.spyOn(feedParserModule, "default").mockResolvedValue(parsedFeed)
     vi.spyOn(feedService, "getFeeds").mockResolvedValue([testFeed])
     const updateFeedSpy = vi.spyOn(feedService, "updateFeed")
     const saveArticlesSpy = vi.spyOn(articleService, "saveArticles")
@@ -89,9 +86,21 @@ describe("FeedSyncService", () => {
     )
   })
 
-  it("should handle network errors gracefully", async () => {
-    const axiosError = { isAxiosError: true, message: "Network fail" }
-    vi.spyOn(feedParserModule, "default").mockRejectedValue(axiosError)
+  it("should handle generic errors gracefully", async () => {
+    vi.spyOn(feedParserModule, "default").mockRejectedValue(
+      new Error("Network error"),
+    )
+
+    await feedSyncService.syncFeeds()
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Error while syncing feed"),
+    )
+  })
+
+  it("should handle network errors with error codes gracefully", async () => {
+    const networkError = new Error("Network fail")
+    Object.assign(networkError, { code: "ECONNREFUSED" })
+    vi.spyOn(feedParserModule, "default").mockRejectedValue(networkError)
 
     await feedSyncService.syncFeeds()
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -105,7 +114,7 @@ describe("FeedSyncService", () => {
     )
     await feedSyncService.syncFeeds()
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Unexpected error while syncing feed"),
+      expect.stringContaining("Error while syncing feed"),
     )
   })
 })

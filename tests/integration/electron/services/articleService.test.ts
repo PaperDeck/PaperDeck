@@ -12,7 +12,7 @@ const testFeed = {
 
 const testArticles = [
   {
-    id: "article-1",
+    guid: "article-1",
     title: "Article 1",
     link: `${feedUrl}/article-1`,
     summary: "Summary 1",
@@ -22,7 +22,7 @@ const testArticles = [
     datePublished: new Date("2023-01-01T00:00:00Z"),
   },
   {
-    id: "article-2",
+    guid: "article-2",
     title: "Article 2",
     link: `${feedUrl}/article-2`,
     summary: "Summary 2",
@@ -46,12 +46,12 @@ beforeEach(async () => {
   await articleService.deleteAllArticlesByFeedUrl(feedUrl)
 })
 
-describe("ArticleService", () => {
+describe.sequential("ArticleService", () => {
   it("should save articles and upsert correctly", async () => {
     const saved = await articleService.saveArticles(feedUrl, testArticles)
     expect(saved).toHaveLength(2)
-    expect(saved[0].id).toBe(testArticles[0].id)
-    expect(saved[1].id).toBe(testArticles[1].id)
+    expect(saved[0].id).toBe(testArticles[0].guid)
+    expect(saved[1].id).toBe(testArticles[1].guid)
 
     const updatedArticles = [
       { ...testArticles[0], summary: "Updated Summary 1" },
@@ -65,9 +65,9 @@ describe("ArticleService", () => {
   it("should mark article as read", async () => {
     await articleService.saveArticles(feedUrl, testArticles)
     const article = testArticles[0]
-    const updated = await articleService.markArticleAsRead(article.id)
+    const updated = await articleService.markArticleAsRead(article.guid)
     expect(updated.isRead).toBe(true)
-    expect(updated.id).toBe(article.id)
+    expect(updated.id).toBe(article.guid)
   })
 
   it("should get articles by feedId with correct order and limit", async () => {

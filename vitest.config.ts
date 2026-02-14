@@ -6,6 +6,7 @@ export default defineConfig({
     coverage: {
       exclude: ["generated/**"],
     },
+    fileParallelism: false,
   },
   resolve: {
     alias: {

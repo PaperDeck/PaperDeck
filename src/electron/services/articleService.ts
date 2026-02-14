@@ -1,22 +1,24 @@
 import { prisma } from "@/electron/utils/prisma"
-import type { FeedItem } from "@/shared/types/feedParser"
+import type Parser from "rss-parser"
 
 class ArticleService {
-  async saveArticles(feedUrl: string, articles: FeedItem[]) {
+  async saveArticles(feedUrl: string, articles: Parser.Item[]) {
     const operations = articles.map((article) => {
+      const pubDate = article.isoDate ? new Date(article.isoDate) : undefined
+      const articleId = article.guid ?? article.link ?? ""
       return prisma.article.upsert({
-        where: { id: article.id },
+        where: { id: articleId },
         update: {
-          title: article.title,
-          summary: article.summary,
-          link: article.link,
+          title: article.title ?? "",
+          summary: article.summary ?? article.contentSnippet ?? "",
+          link: article.link ?? "",
         },
         create: {
-          id: article.id,
-          title: article.title,
-          link: article.link,
-          summary: article.summary,
-          pubDate: article.datePublished,
+          id: articleId,
+          title: article.title ?? "",
+          link: article.link ?? "",
+          summary: article.summary ?? article.contentSnippet ?? "",
+          pubDate,
           isRead: false,
           feed: {
             connect: { url: feedUrl },

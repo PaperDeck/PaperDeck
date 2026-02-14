@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer } from "electron"
-import type { FeedItem } from "@/shared/types/feedParser"
+import type Parser from "rss-parser"
 
 const api = {
   articleService: {
-    saveArticles: (feedUrl: string, articles: FeedItem[]) =>
+    saveArticles: (feedUrl: string, articles: Parser.Item[]) =>
       ipcRenderer.invoke("articleService", "saveArticles", feedUrl, articles),
     markArticleAsRead: (articleId: string) =>
       ipcRenderer.invoke("articleService", "markArticleAsRead", articleId),
