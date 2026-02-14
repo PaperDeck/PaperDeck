@@ -97,11 +97,24 @@ describe("FeedSyncService", () => {
     )
   })
 
-  it("should handle unexpected errors gracefully", async () => {
-    vi.spyOn(feedParserModule, "default").mockRejectedValue("Unknown error")
+  it("should handle network errors with error codes gracefully", async () => {
+    const networkError = new Error("Network fail")
+    Object.assign(networkError, { code: "ECONNREFUSED" })
+    vi.spyOn(feedParserModule, "default").mockRejectedValue(networkError)
+
     await feedSyncService.syncFeeds()
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Unexpected error while syncing feed"),
+      expect.stringContaining("Network error while fetching feed"),
+    )
+  })
+
+  it("should handle unexpected errors gracefully", async () => {
+    vi.spyOn(feedParserModule, "default").mockRejectedValue(
+      new Error("Unknown error"),
+    )
+    await feedSyncService.syncFeeds()
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Error while syncing feed"),
     )
   })
 })
