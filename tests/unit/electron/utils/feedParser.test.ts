@@ -1,11 +1,20 @@
-import { describe, it, expect, vi } from "vitest"
-import feedParser from "@/electron/services/feedParser"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { ParserError } from "@/shared/types/feedParser"
-import Parser from "rss-parser"
 
-vi.mock("rss-parser")
+// Mock rss-parser before importing feedParser
+vi.mock("rss-parser", () => {
+  return {
+    default: vi.fn().mockImplementation(function (this: unknown) {
+      return this
+    }),
+  }
+})
 
 describe("feedParser", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it("should parse a feed successfully and return rss-parser output", async () => {
     const mockFeed = {
       title: "Test Feed",
@@ -25,9 +34,15 @@ describe("feedParser", () => {
     }
 
     const mockParseURL = vi.fn().mockResolvedValue(mockFeed)
-    ;(Parser as unknown as vi.Mock).mockImplementation(() => ({
-      parseURL: mockParseURL,
-    }))
+    const { default: Parser } = await import("rss-parser")
+    ;(Parser as unknown as vi.Mock).mockImplementation(function (
+      this: { parseURL: typeof mockParseURL },
+    ) {
+      this.parseURL = mockParseURL
+      return this
+    })
+
+    const feedParser = (await import("@/electron/services/feedParser")).default
 
     const result = await feedParser("https://example.com/feed.xml")
 
@@ -40,12 +55,19 @@ describe("feedParser", () => {
   it("should use custom timeout when provided", async () => {
     const mockFeed = { title: "Test", items: [] }
     const mockParseURL = vi.fn().mockResolvedValue(mockFeed)
-    
+
     let capturedTimeout: number | undefined
-    ;(Parser as unknown as vi.Mock).mockImplementation((options) => {
+    const { default: Parser } = await import("rss-parser")
+    ;(Parser as unknown as vi.Mock).mockImplementation(function (
+      this: { parseURL: typeof mockParseURL },
+      options?: { timeout?: number },
+    ) {
       capturedTimeout = options?.timeout
-      return { parseURL: mockParseURL }
+      this.parseURL = mockParseURL
+      return this
     })
+
+    const feedParser = (await import("@/electron/services/feedParser")).default
 
     await feedParser("https://example.com/feed.xml", 10000)
 
@@ -54,9 +76,15 @@ describe("feedParser", () => {
 
   it("should throw ParserError when parsing fails", async () => {
     const mockParseURL = vi.fn().mockRejectedValue(new Error("Parse failed"))
-    ;(Parser as unknown as vi.Mock).mockImplementation(() => ({
-      parseURL: mockParseURL,
-    }))
+    const { default: Parser } = await import("rss-parser")
+    ;(Parser as unknown as vi.Mock).mockImplementation(function (
+      this: { parseURL: typeof mockParseURL },
+    ) {
+      this.parseURL = mockParseURL
+      return this
+    })
+
+    const feedParser = (await import("@/electron/services/feedParser")).default
 
     await expect(
       feedParser("https://example.com/bad-feed.xml"),
