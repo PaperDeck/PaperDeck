@@ -1,1 +1,1 @@
-npm run test
+npx vitest run tests/unit/electron/utils/feedParser.test.ts --no-coverage
