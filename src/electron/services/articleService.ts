@@ -47,6 +47,11 @@ class ArticleService {
       where: { feedUrl },
     })
   }
+  async getAll() {
+    return prisma.article.findMany({
+      orderBy: { pubDate: "desc" },
+    })
+  }
 }
 
 const articleService = new ArticleService()
