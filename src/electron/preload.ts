@@ -20,7 +20,8 @@ const api = {
         "deleteAllArticlesByFeedUrl",
         feedUrl,
       ),
-    getAll: () => ipcRenderer.invoke("articleService", "getAll"),
+    getAll: (includeFeeds = false) =>
+      ipcRenderer.invoke("articleService", "getAll", includeFeeds),
   },
   feedService: {
     addFeed: (title: string, url: string) =>

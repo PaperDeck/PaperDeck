@@ -47,9 +47,12 @@ class ArticleService {
       where: { feedUrl },
     })
   }
-  async getAll() {
+  async getAll(includeFeeds = false) {
     return prisma.article.findMany({
       orderBy: { pubDate: "desc" },
+      include: {
+        feed: includeFeeds,
+      },
     })
   }
 }
