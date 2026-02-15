@@ -28,7 +28,7 @@ temp/
 tmp/
 
 # Other
-.env
+.env*
 /generated/prisma
 *.db
 coverage
