@@ -1,12 +1,18 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import { createBrowserRouter, RouterProvider } from "react-router"
-import "./lib/i18n"
-import routes from "./routes"
-import "./style.css"
+import {
+  createHashRouter,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router"
+import "@/renderer/lib/i18n"
+import routes from "@/renderer/routes"
+import "@/renderer/style.css"
 import { Toaster } from "react-hot-toast"
 
-const router = createBrowserRouter(routes)
+const router = import.meta.env.DEV
+  ? createBrowserRouter(routes)
+  : createHashRouter(routes)
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

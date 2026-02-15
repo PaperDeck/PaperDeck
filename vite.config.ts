@@ -39,7 +39,7 @@ export default defineConfig({
         vite: {
           build: {
             outDir: path.join(__dirname, "dist/electron"),
-            emptyOutDir: true,
+            emptyOutDir: false,
           },
         },
       },
