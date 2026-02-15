@@ -1,3 +1,4 @@
+import Articles from "@/renderer/pages/Articles"
 import Home from "@/renderer/pages/Home"
 import MainLayout from "@/renderer/layouts/Main"
 
@@ -9,6 +10,10 @@ const routes = [
       {
         index: true,
         element: <Home />,
+      },
+      {
+        path: "articles",
+        element: <Articles />,
       },
     ],
   },
