@@ -1,9 +1,16 @@
-import Home from "./pages/Home"
+import Home from "@/renderer/pages/Home"
+import MainLayout from "@/renderer/layouts/Main"
 
 const routes = [
   {
-    element: <Home />,
     path: "/",
+    element: <MainLayout />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+    ],
   },
 ]
 
