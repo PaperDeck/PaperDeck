@@ -120,6 +120,27 @@
   body {
     @apply bg-background text-foreground;
   }
+  button,
+  a,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  [role="button"],
+  [role="menuitem"],
+  [role="switch"],
+  [role="tab"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="option"],
+  [role="listbox"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  [aria-disabled="true"] {
+    cursor: default;
+  }
 }
 
 html,

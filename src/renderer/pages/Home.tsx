@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import NewFeed from "@/renderer/components/NewFeed"
 import { Button } from "@/renderer/components/ui/button"
 import { useState } from "react"
+import { Link } from "react-router"
 
 export default function Home() {
   const { t } = useTranslation()
@@ -12,6 +13,7 @@ export default function Home() {
       <h1 className="text-2xl text-center">{t("greeting")}</h1>
       <Button onClick={openDialog}>New Feed</Button>
       <NewFeed isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      <Link to="/articles">Go to Articles</Link>
     </>
   )
 }
