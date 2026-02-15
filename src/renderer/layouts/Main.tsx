@@ -2,7 +2,7 @@ import { Outlet } from "react-router"
 
 export default function MainLayout() {
   return (
-    <div className="bg-zinc-50 h-screen">
+    <div className="bg-zinc-50 h-screen overflow-auto">
       <Outlet></Outlet>
     </div>
   )
