@@ -135,7 +135,7 @@ export default function NewFeed({
   return (
     <div className="flex items-center justify-center overflow-y-auto max-w-md">
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-h-[90%] overflow-y-auto">
+        <DialogContent className="max-h-[90%] overflow-y-auto bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100">
           <div className="flex flex-col items-center">
             <Rss className="w-12 h-12 mb-4" />
             <DialogTitle className="text-lg">{t("newFeed")}</DialogTitle>
@@ -160,7 +160,7 @@ export default function NewFeed({
               )}
             />
             {isLoading && (
-              <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50">
+              <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50 dark:bg-neutral-700">
                 <Skeleton className="w-32 h-5"></Skeleton>
                 <Skeleton className="w-16 h-5 mb-1"></Skeleton>
                 <ul>
@@ -171,11 +171,17 @@ export default function NewFeed({
               </div>
             )}
             {feedResult && (
-              <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50">
-                <h2 className="font-bold text-xl">{feedResult.title}</h2>
-                <p className="text-sm text-gray-500">{feedResult.link}</p>
+              <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50 dark:bg-neutral-700">
+                <h2 className="font-bold text-xl text-gray-900 dark:text-gray-100">
+                  {feedResult.title}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {feedResult.link}
+                </p>
                 <hr></hr>
-                <p className="font-bold">{t("recentArticles")}</p>
+                <p className="font-bold dark:text-gray-100">
+                  {t("recentArticles")}
+                </p>
                 {feedResult.items.length === 0 && (
                   <p className="text-sm text-gray-500">
                     {t("noArticlesFound")}
@@ -185,10 +191,12 @@ export default function NewFeed({
                   {feedResult.items.slice(0, 5).map((article) => (
                     <li
                       key={article.guid || article.link}
-                      className="mb-3 shadow p-2 rounded bg-white"
+                      className="mb-3 shadow p-2 rounded bg-white dark:bg-neutral-800"
                     >
-                      <div className="text-lg mb-3">{article.title}</div>
-                      <div>
+                      <div className="text-lg mb-3 text-gray-900 dark:text-gray-100">
+                        {article.title}
+                      </div>
+                      <div className="text-gray-700 dark:text-gray-300">
                         {truncateText(
                           extractText(article.contentSnippet || ""),
                           50,
@@ -200,7 +208,7 @@ export default function NewFeed({
               </div>
             )}
             {parseSuccess === false && (
-              <p className="text-sm text-red-500 mt-2">
+              <p className="text-sm text-red-500 mt-2 dark:text-red-400">
                 {t("feedParsingFailed")}
               </p>
             )}
