@@ -8,9 +8,10 @@
     "dev": "npm run postinstall && vite",
     "build-vite": "tsc -b && vite build",
     "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "prebuild": "node scripts/generate-db.js && npx prisma generate",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build": "npm run build-vite && electron-builder --dir",
+    "build": "npm run prebuild && npm run build-vite && electron-builder --dir",
     "prepare": "husky",
     "test:unit": "npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
     "test:integration": "npm rebuild better-sqlite3 && vitest run tests/integration",
@@ -24,7 +25,11 @@
     },
     "files": [
       "dist/**/*",
-      "package.json"
+      "package.json",
+      "resources/**/*"
+    ],
+    "asarUnpack": [
+      "resources/**/*"
     ]
   },
   "dependencies": {
