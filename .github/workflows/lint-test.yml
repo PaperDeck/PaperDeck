@@ -23,7 +23,5 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npx eslint . --ext .js,.jsx,.ts,.tsx
       - run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
-      - run: touch test.db
       - run: npx prisma generate
-      - run: npx prisma db push
       - run: npm test

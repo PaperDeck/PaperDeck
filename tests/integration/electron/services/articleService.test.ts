@@ -85,4 +85,14 @@ describe.sequential("ArticleService", () => {
     const articles = await articleService.getArticlesByFeedUrl(feedUrl)
     expect(articles).toHaveLength(0)
   })
+
+  it("should get all articles with optional feed data", async () => {
+    await articleService.saveArticles(feedUrl, testArticles)
+    const articlesWithoutFeed = await articleService.getAll()
+    expect(articlesWithoutFeed[0].feed).toBeUndefined()
+
+    const articlesWithFeed = await articleService.getAll(true)
+    expect(articlesWithFeed[0].feed).toBeDefined()
+    expect(articlesWithFeed[0].feed?.url).toBe(feedUrl)
+  })
 })

@@ -102,6 +102,7 @@ describe("FeedSyncService", () => {
     vi.spyOn(feedParserModule, "default").mockRejectedValue(
       new Error("Unknown error"),
     )
+    vi.spyOn(console, "error").mockImplementation(() => {})
     const result = await feedSyncService.syncFeeds()
     expect(result.errorCount).toBe(1)
     expect(result.errors).toHaveLength(0)

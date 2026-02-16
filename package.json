@@ -12,9 +12,10 @@
     "preview": "vite preview",
     "build": "npm run prebuild && npm run build-vite && electron-builder --dir",
     "prepare": "husky",
-    "test:unit": "npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
-    "test:integration": "npm rebuild better-sqlite3 && vitest run tests/integration",
-    "test": "npm rebuild better-sqlite3 && vitest run"
+    "test:db-push": "dotenv -e .env.test -- npx prisma db push",
+    "test:unit": "npm run test:db-push && npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
+    "test:integration": "npm run test:db-push && npm rebuild better-sqlite3 && vitest run tests/integration --coverage",
+    "test": "npm run test:db-push && npm rebuild better-sqlite3 && vitest run --coverage"
   },
   "build": {
     "appId": "com.reader.app",
@@ -41,6 +42,7 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.4",
+    "dotenv-cli": "^11.0.0",
     "i18next": "^25.8.4",
     "lucide-react": "^0.563.0",
     "p-limit": "^7.3.0",
