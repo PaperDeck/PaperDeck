@@ -5,9 +5,8 @@
   "type": "module",
   "main": "dist/electron/main.js",
   "scripts": {
-    "dev": "npm run postinstall && vite",
+    "dev": "electron-rebuild -f -w better-sqlite3 && vite",
     "build-vite": "tsc -b && vite build",
-    "postinstall": "electron-rebuild -f -w better-sqlite3",
     "prebuild": "node scripts/generate-db.js && npx prisma generate",
     "lint": "eslint .",
     "preview": "vite preview",
