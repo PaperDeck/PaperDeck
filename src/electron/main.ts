@@ -6,6 +6,7 @@ import feedService from "@/electron/services/feedService"
 import feedSyncService from "@/electron/services/feedSyncService"
 import feedParser from "@/electron/services/feedParser"
 import fs from "fs"
+import dataStorage from "@/electron/services/dataStorage"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -69,6 +70,7 @@ app.whenReady().then(() => {
   registerAsyncService("feedService", feedService)
   registerAsyncService("feedSyncService", feedSyncService)
   registerAsyncFunction("feedParser", feedParser)
+  registerAsyncService("dataStorage", dataStorage)
 
   createWindow()
 

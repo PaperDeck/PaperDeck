@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
-import ThemeProviderContext from "../contexts/themeContext"
-
-type Theme = "dark" | "light" | "system"
+import ThemeProviderContext from "@/renderer/contexts/themeContext"
+import type { IDataStorage } from "@/shared/types/dataStorage"
+import { useDataStorage } from "@/renderer/hooks/useApi"
 
 type ThemeProviderProps = {
   children: React.ReactNode
-  defaultTheme?: Theme
+  defaultTheme?: IDataStorage["theme"]
   storageKey?: string
 }
 
@@ -13,7 +13,16 @@ export default function ThemeProvider({
   children,
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>("system")
+  const dataStorage = useDataStorage()
+
+  const [theme, setTheme] = useState<IDataStorage["theme"]>("system")
+  useEffect(() => {
+    dataStorage.getTheme().then((storedTheme) => {
+      if (storedTheme) {
+        setTheme(storedTheme.data)
+      }
+    })
+  }, [dataStorage])
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -35,8 +44,8 @@ export default function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      //TODO: Add persistence
+    setTheme: (theme: IDataStorage["theme"]) => {
+      dataStorage.setTheme(theme)
       setTheme(theme)
     },
   }

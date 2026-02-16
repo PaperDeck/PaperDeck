@@ -44,6 +44,7 @@
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.4",
     "dotenv-cli": "^11.0.0",
+    "electron-store": "^11.0.2",
     "i18next": "^25.8.4",
     "lucide-react": "^0.563.0",
     "p-limit": "^7.3.0",

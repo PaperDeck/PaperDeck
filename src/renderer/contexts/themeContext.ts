@@ -1,10 +1,9 @@
 import { createContext } from "react"
-
-type Theme = "dark" | "light" | "system"
+import type { IDataStorage } from "@/shared/types/dataStorage"
 
 type ThemeProviderState = {
-  theme: Theme
-  setTheme: (theme: Theme) => void
+  theme: IDataStorage["theme"]
+  setTheme: (theme: IDataStorage["theme"]) => void
 }
 
 const initialState: ThemeProviderState = {
