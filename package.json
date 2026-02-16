@@ -5,12 +5,12 @@
   "type": "module",
   "main": "dist/electron/main.js",
   "scripts": {
-    "dev": "npm run postinstall && vite",
+    "dev": "electron-rebuild -f -w better-sqlite3 && vite",
     "build-vite": "tsc -b && vite build",
-    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "prebuild": "node scripts/generate-db.js && npx prisma generate",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build": "npm run build-vite && electron-builder --dir",
+    "build": "npm run prebuild && npm run build-vite && electron-builder --dir",
     "prepare": "husky",
     "test:unit": "npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
     "test:integration": "npm rebuild better-sqlite3 && vitest run tests/integration",
@@ -24,7 +24,11 @@
     },
     "files": [
       "dist/**/*",
-      "package.json"
+      "package.json",
+      "resources/**/*"
+    ],
+    "asarUnpack": [
+      "resources/**/*"
     ]
   },
   "dependencies": {
@@ -38,7 +42,6 @@
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.4",
     "i18next": "^25.8.4",
-    "i18next-http-backend": "^3.0.2",
     "lucide-react": "^0.563.0",
     "p-limit": "^7.3.0",
     "radix-ui": "^1.4.3",
