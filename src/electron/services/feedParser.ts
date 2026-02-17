@@ -3,7 +3,11 @@ import { ParserError } from "@/shared/types/feedParser"
 import axios from "axios"
 
 export default async function feedParser(url: string, timeout: number = 10000) {
-  const parser = new Parser()
+  const parser = new Parser({
+    customFields: {
+      item: ["content:encoded"],
+    },
+  })
 
   try {
     const response = await axios.get(url, {
