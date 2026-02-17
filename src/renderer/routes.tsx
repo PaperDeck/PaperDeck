@@ -1,4 +1,4 @@
-import Articles from "@/renderer/pages/Articles"
+import ArticlesList from "@/renderer/pages/ArticlesList"
 import Home from "@/renderer/pages/Home"
 import MainLayout from "@/renderer/layouts/Main"
 
@@ -13,7 +13,7 @@ const routes = [
       },
       {
         path: "articles",
-        element: <Articles />,
+        element: <ArticlesList />,
       },
     ],
   },
