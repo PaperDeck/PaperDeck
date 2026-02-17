@@ -12,12 +12,13 @@ import {
   TooltipTrigger,
 } from "@/renderer/components/ui/tooltip"
 import { useTranslation } from "react-i18next"
+import { Skeleton } from "@/renderer/components/ui/skeleton"
 
 type ArticleWithFeed = Article & {
   feed: Feed
 }
 export default function Articles() {
-  const [articles, setArticles] = useState<ArticleWithFeed[]>([])
+  const [articles, setArticles] = useState<ArticleWithFeed[] | null>(null)
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
   const [isLoading, setIsLoading] = useState(false)
@@ -51,44 +52,63 @@ export default function Articles() {
   return (
     <div>
       <div className="flex flex-col items-center pt-10">
-        <div className="flex items-end mb-10">
+        <div className="flex mb-10">
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <IconButton
                 onClick={handleRefresh}
                 disabled={isLoading}
                 className={isLoading ? "animate-spin opacity-50" : ""}
               >
-                <RefreshCcw />
+                <RefreshCcw size={32} />
               </IconButton>
             </TooltipTrigger>
             <TooltipContent>{t("refreshFeeds")}</TooltipContent>
           </Tooltip>
         </div>
-        {articles.map((article) => (
-          <div
-            key={article.id}
-            className="flex flex-col items-start p-5 mb-4 w-full max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer"
-          >
-            <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
-              {article.title}
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-0.5">
-              {article.feed.title}
+        <ul>
+          {!articles &&
+            [1, 2, 3, 4, 5].map((i) => (
+              <li
+                key={i}
+                className="flex flex-col items-start p-5 mb-4 w-md rounded-lg bg-gray-200 dark:bg-neutral-700 animate-pulse"
+              >
+                <Skeleton className="w-[60%] h-6 mb-2" />
+                <Skeleton className="w-[40%] h-4 mb-1" />
+                <Skeleton className="w-[30%] h-3 mb-3" />
+                <Skeleton className="w-full h-4" />
+              </li>
+            ))}
+          {articles?.length === 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("tryAddingSomeFeeds")}
             </p>
-            {article.pubDate && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {fromNow(article.pubDate)}
+          )}
+          {articles?.map((article) => (
+            <li
+              key={article.id}
+              className="flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer"
+            >
+              <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
+                {article.title}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-0.5">
+                {article.feed.title}
               </p>
-            )}
-            <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
-              {truncateText(
-                extractText(article.summary || article.content || ""),
-                50,
+              {article.pubDate && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {fromNow(article.pubDate)}
+                </p>
               )}
-            </p>
-          </div>
-        ))}
+              <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
+                {truncateText(
+                  extractText(article.summary || article.content || ""),
+                  50,
+                )}
+              </p>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )

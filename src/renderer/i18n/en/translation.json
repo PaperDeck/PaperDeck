@@ -10,5 +10,6 @@
   "recentArticles": "Recent Articles",
   "noArticlesFound": "No articles found.",
   "feedAlreadyExists": "This feed already exists in your list.",
-  "refreshFeeds": "Refresh Feeds"
+  "refreshFeeds": "Refresh Feeds",
+  "tryAddingSomeFeeds": "Try adding some feeds to see articles here."
 }
