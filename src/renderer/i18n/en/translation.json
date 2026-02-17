@@ -9,5 +9,6 @@
   "failedToAddFeed": "Failed to add the feed.",
   "recentArticles": "Recent Articles",
   "noArticlesFound": "No articles found.",
-  "feedAlreadyExists": "This feed already exists in your list."
+  "feedAlreadyExists": "This feed already exists in your list.",
+  "refreshFeeds": "Refresh Feeds"
 }

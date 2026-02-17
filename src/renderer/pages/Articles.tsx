@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react"
-import { useArticleService } from "@/renderer/hooks/useApi"
+import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import type { Article, Feed } from "@/../generated/prisma/browser"
-import useRelativeTime from "../hooks/useRelativeTime"
+import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import truncateText from "@/renderer/utils/truncateText"
 import extractText from "@/renderer/utils/extractText"
+import { RefreshCcw } from "lucide-react"
+import IconButton from "@/renderer/components/IconButton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/renderer/components/ui/tooltip"
+import { useTranslation } from "react-i18next"
 
 type ArticleWithFeed = Article & {
   feed: Feed
@@ -11,6 +19,9 @@ type ArticleWithFeed = Article & {
 export default function Articles() {
   const [articles, setArticles] = useState<ArticleWithFeed[]>([])
   const articleService = useArticleService()
+  const feedSyncService = useFeedSyncService()
+  const [isLoading, setIsLoading] = useState(false)
+  const { t } = useTranslation()
   const fromNow = useRelativeTime()
   useEffect(() => {
     const fetchArticles = async () => {
@@ -19,9 +30,41 @@ export default function Articles() {
     }
     fetchArticles()
   }, [articleService])
+  const handleRefresh = async () => {
+    setIsLoading(true)
+    const result = await feedSyncService.syncFeeds()
+    //TODO: Show sync result in UI instead of console
+    console.log(
+      `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
+    )
+    const articles = await articleService.getAll(true)
+    if (articles.success) {
+      setArticles(articles.data)
+    } else {
+      console.error(
+        "Failed to fetch articles after syncing feeds:",
+        articles.error,
+      )
+    }
+    setIsLoading(false)
+  }
   return (
     <div>
       <div className="flex flex-col items-center pt-10">
+        <div className="flex items-end mb-10">
+          <Tooltip>
+            <TooltipTrigger>
+              <IconButton
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className={isLoading ? "animate-spin opacity-50" : ""}
+              >
+                <RefreshCcw />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("refreshFeeds")}</TooltipContent>
+          </Tooltip>
+        </div>
         {articles.map((article) => (
           <div
             key={article.id}
