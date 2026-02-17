@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { useArticleService } from "@/renderer/hooks/useApi"
 import type { Article, Feed } from "@/../generated/prisma/browser"
 import useRelativeTime from "../hooks/useRelativeTime"
+import truncateText from "@/renderer/utils/truncateText"
+import extractText from "@/renderer/utils/extractText"
 
 type ArticleWithFeed = Article & {
   feed: Feed
@@ -37,7 +39,10 @@ export default function Articles() {
               </p>
             )}
             <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
-              {article.summary}
+              {truncateText(
+                extractText(article.summary || article.content || ""),
+                50,
+              )}
             </p>
           </div>
         ))}

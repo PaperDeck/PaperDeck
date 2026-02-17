@@ -198,7 +198,9 @@ export default function NewFeed({
                       </div>
                       <div className="text-gray-700 dark:text-gray-300">
                         {truncateText(
-                          extractText(article.contentSnippet || ""),
+                          extractText(
+                            article.summary || article.contentSnippet || "",
+                          ),
                           50,
                         )}
                       </div>
