@@ -37,6 +37,11 @@ const api = {
   },
   feedParser: (url: string, timeout?: number) =>
     ipcRenderer.invoke("feedParser", url, timeout),
+  dataStorage: {
+    getTheme: () => ipcRenderer.invoke("dataStorage", "getTheme"),
+    setTheme: (theme: "light" | "dark" | "system") =>
+      ipcRenderer.invoke("dataStorage", "setTheme", theme),
+  },
 }
 
 contextBridge.exposeInMainWorld("ipcBridge", api)

@@ -10,3 +10,6 @@ export const useFeedSyncService = () => {
 export const useFeedParser = () => {
   return window.ipcBridge.feedParser
 }
+export const useDataStorage = () => {
+  return window.ipcBridge.dataStorage
+}
