@@ -23,7 +23,7 @@ export default function Articles() {
         {articles.map((article) => (
           <div
             key={article.id}
-            className="flex flex-col items-start p-5 mb-4 w-full max-w-md rounded-lg hover:shadow-lg transition-all duration-250 cursor-pointer"
+            className="flex flex-col items-start p-5 mb-4 w-full max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer"
           >
             <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
               {article.title}
