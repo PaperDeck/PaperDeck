@@ -15,7 +15,9 @@ export default function ThemeProvider({
 }: ThemeProviderProps) {
   const dataStorage = useDataStorage()
 
-  const [theme, setTheme] = useState<IDataStorage["theme"]>("system")
+  const [theme, setTheme] = useState<IDataStorage["theme"]>(
+    (localStorage.getItem("theme") as IDataStorage["theme"]) || "system",
+  )
   useEffect(() => {
     dataStorage.getTheme().then((storedTheme) => {
       if (storedTheme) {
@@ -46,6 +48,7 @@ export default function ThemeProvider({
     theme,
     setTheme: (theme: IDataStorage["theme"]) => {
       dataStorage.setTheme(theme)
+      localStorage.setItem("theme", theme)
       setTheme(theme)
     },
   }
