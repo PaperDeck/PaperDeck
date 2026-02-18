@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
-import type { Article, Feed } from "@/../generated/prisma/browser"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import truncateText from "@/renderer/utils/truncateText"
 import extractText from "@/renderer/utils/extractText"
@@ -13,27 +12,19 @@ import {
 } from "@/renderer/components/ui/tooltip"
 import { useTranslation } from "react-i18next"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
+import { useArticles } from "@/renderer/hooks/useArticles"
 
-type ArticleWithFeed = Article & {
-  feed: Feed
-}
 export default function ArticlesList() {
-  const [articles, setArticles] = useState<ArticleWithFeed[] | null>(null)
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation()
+  const { articles, setArticles } = useArticles()
   const fromNow = useRelativeTime()
-  useEffect(() => {
-    const fetchArticles = async () => {
-      const articles = await articleService.getAll(true)
-      setArticles(articles.data)
-    }
-    fetchArticles()
-  }, [articleService])
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
+
     //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,

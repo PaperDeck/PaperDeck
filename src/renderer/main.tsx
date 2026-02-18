@@ -11,6 +11,7 @@ import "@/renderer/style.css"
 import { Toaster } from "react-hot-toast"
 import ThemeProvider from "@/renderer/providers/themeProvider"
 import { TooltipProvider } from "@/renderer/components/ui/tooltip"
+import ArticlesProvider from "@/renderer/providers/ArticlesProvide"
 
 const router = import.meta.env.DEV
   ? createBrowserRouter(routes)
@@ -19,10 +20,12 @@ const router = import.meta.env.DEV
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <RouterProvider router={router} />
-      </TooltipProvider>
+      <ArticlesProvider>
+        <TooltipProvider>
+          <Toaster />
+          <RouterProvider router={router} />
+        </TooltipProvider>
+      </ArticlesProvider>
     </ThemeProvider>
   </StrictMode>,
 )
