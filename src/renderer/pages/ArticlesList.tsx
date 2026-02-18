@@ -12,7 +12,7 @@ import {
 } from "@/renderer/components/ui/tooltip"
 import { useTranslation } from "react-i18next"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
-import { useArticles } from "@/renderer/hooks/useArticles"
+import useArticles from "@/renderer/hooks/useArticles"
 
 export default function ArticlesList() {
   const articleService = useArticleService()

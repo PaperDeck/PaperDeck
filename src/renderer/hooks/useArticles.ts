@@ -1,7 +1,7 @@
 import ArticlesContext from "@/renderer/contexts/articlesContext"
 import { useContext } from "react"
 
-export const useArticles = () => {
+const useArticles = () => {
   const context = useContext(ArticlesContext)
 
   if (context === undefined) {
@@ -9,3 +9,5 @@ export const useArticles = () => {
   }
   return context
 }
+
+export default useArticles
