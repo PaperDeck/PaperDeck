@@ -42,6 +42,7 @@ const api = {
     setTheme: (theme: "light" | "dark" | "system") =>
       ipcRenderer.invoke("dataStorage", "setTheme", theme),
   },
+  openInBrowser: (url: string) => ipcRenderer.invoke("openInBrowser", url),
 }
 
 contextBridge.exposeInMainWorld("ipcBridge", api)

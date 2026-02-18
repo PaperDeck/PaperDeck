@@ -7,6 +7,7 @@ import feedSyncService from "@/electron/services/feedSyncService"
 import feedParser from "@/electron/services/feedParser"
 import fs from "fs"
 import dataStorage from "@/electron/services/dataStorage"
+import openInBrowser from "@/electron/utils/openInBrowser"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -70,6 +71,7 @@ app.whenReady().then(() => {
   registerService("feedService", feedService)
   registerService("feedSyncService", feedSyncService)
   registerFunction("feedParser", feedParser)
+  registerFunction("openInBrowser", openInBrowser)
   registerService("dataStorage", dataStorage)
 
   createWindow()
