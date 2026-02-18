@@ -9,7 +9,7 @@ import "@/renderer/lib/i18n"
 import routes from "@/renderer/routes"
 import "@/renderer/style.css"
 import { Toaster } from "react-hot-toast"
-import ThemeProvider from "@/renderer/providers/themeProvider"
+import ThemeProvider from "@/renderer/providers/ThemeProvider"
 import { TooltipProvider } from "@/renderer/components/ui/tooltip"
 import ArticlesProvider from "@/renderer/providers/ArticlesProvide"
 

@@ -1,6 +1,7 @@
 import ArticlesList from "@/renderer/pages/ArticlesList"
 import Home from "@/renderer/pages/Home"
 import MainLayout from "@/renderer/layouts/Main"
+import Article from "@/renderer/pages/Article"
 
 const routes = [
   {
@@ -14,6 +15,10 @@ const routes = [
       {
         path: "articles",
         element: <ArticlesList />,
+      },
+      {
+        path: "article/:id",
+        element: <Article />,
       },
     ],
   },
