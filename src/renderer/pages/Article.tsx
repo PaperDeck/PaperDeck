@@ -6,6 +6,7 @@ import { useOpenInBrowser } from "@/renderer/hooks/useApi"
 import type { DOMNode } from "html-react-parser"
 import type { ChildNode } from "domhandler"
 import { cn } from "@/renderer/lib/utils"
+import ArticleImage from "@/renderer/components/ArticleImage"
 
 function isUrl(str: string): boolean {
   try {
@@ -122,6 +123,12 @@ export default function Article() {
                     })}
                   </div>
                 )
+              }
+              if (domNode.type === "tag" && domNode.tagName === "img") {
+                const src = domNode.attribs.src
+                if (src) {
+                  return <ArticleImage src={src} alt={domNode.attribs.alt} />
+                }
               }
             },
           })}
