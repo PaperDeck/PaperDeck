@@ -20,6 +20,7 @@ import truncateText from "@/renderer/utils/truncateText"
 import { toast } from "react-hot-toast"
 import extractText from "@/renderer/utils/extractText"
 import type Parser from "rss-parser"
+import { ScrollArea } from "@/renderer/components/ui/scroll-area"
 
 interface FormData {
   url: string
@@ -133,95 +134,104 @@ export default function NewFeed({
     }
   }, [feedParser, t, url])
   return (
-    <div className="flex items-center justify-center overflow-y-auto max-w-md">
+    <>
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-h-[90%] overflow-y-auto bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100">
-          <div className="flex flex-col items-center">
-            <Rss className="w-12 h-12 mb-4" />
-            <DialogTitle className="text-lg">{t("newFeed")}</DialogTitle>
-            <DialogDescription>{t("newFeedDescription")}</DialogDescription>
-          </div>
-          <form onSubmit={handleSubmit(handleAddFeed)}>
-            <Controller
-              name="url"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  placeholder="https://example.com/rss"
-                  className="w-full"
-                  {...field}
-                  onChange={(e) => {
-                    e.target.value = e.target.value.trim()
-                    setFeedResult(null)
-                    setParseSuccess(null)
-                    field.onChange(e)
-                  }}
-                />
-              )}
-            />
-            {isLoading && (
-              <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50 dark:bg-neutral-700">
-                <Skeleton className="w-32 h-5"></Skeleton>
-                <Skeleton className="w-16 h-5 mb-1"></Skeleton>
-                <ul>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <Skeleton key={n} className="h-10 mb-3 rounded"></Skeleton>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {feedResult && (
-              <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50 dark:bg-neutral-700">
-                <h2 className="font-bold text-xl text-gray-900 dark:text-gray-100">
-                  {feedResult.title}
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {feedResult.link}
-                </p>
-                <hr></hr>
-                <p className="font-bold dark:text-gray-100">
-                  {t("recentArticles")}
-                </p>
-                {feedResult.items.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    {t("noArticlesFound")}
-                  </p>
+        <DialogContent className="bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100">
+          <ScrollArea className="max-h-[80vh] flex flex-col items-center">
+            <div className="flex flex-col items-center">
+              <Rss className="w-12 h-12 mb-4" />
+              <DialogTitle className="text-lg">{t("newFeed")}</DialogTitle>
+              <DialogDescription className="mb-4">
+                {t("newFeedDescription")}
+              </DialogDescription>
+            </div>
+            <form onSubmit={handleSubmit(handleAddFeed)} className="px-1">
+              <Controller
+                name="url"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    placeholder="https://example.com/rss"
+                    className="w-full max-w-md"
+                    {...field}
+                    onChange={(e) => {
+                      e.target.value = e.target.value.trim()
+                      setFeedResult(null)
+                      setParseSuccess(null)
+                      field.onChange(e)
+                    }}
+                  />
                 )}
-                <ul>
-                  {feedResult.items.slice(0, 5).map((article) => (
-                    <li
-                      key={article.guid || article.link}
-                      className="mb-3 shadow p-2 rounded bg-white dark:bg-neutral-800"
-                    >
-                      <div className="text-lg mb-3 text-gray-900 dark:text-gray-100">
-                        {article.title}
-                      </div>
-                      <div className="text-gray-700 dark:text-gray-300">
-                        {truncateText(
-                          extractText(article.contentSnippet || ""),
-                          50,
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {parseSuccess === false && (
-              <p className="text-sm text-red-500 mt-2 dark:text-red-400">
-                {t("feedParsingFailed")}
-              </p>
-            )}
-            <Button
-              className="w-full mt-4"
-              disabled={isLoading || !parseSuccess || !feedResult || isAdding}
-              type="submit"
-            >
-              {isAdding ? t("adding") : t("add")}
-            </Button>
-          </form>
+              />
+              {isLoading && (
+                <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50 dark:bg-neutral-700">
+                  <Skeleton className="w-32 h-5"></Skeleton>
+                  <Skeleton className="w-16 h-5 mb-1"></Skeleton>
+                  <ul>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Skeleton
+                        key={n}
+                        className="h-10 mb-3 rounded"
+                      ></Skeleton>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {feedResult && (
+                <div className="flex flex-col gap-2 my-3 p-3 shadow bg-gray-50 dark:bg-neutral-700">
+                  <h2 className="font-bold text-xl text-gray-900 dark:text-gray-100">
+                    {feedResult.title}
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {feedResult.link}
+                  </p>
+                  <hr></hr>
+                  <p className="font-bold dark:text-gray-100">
+                    {t("recentArticles")}
+                  </p>
+                  {feedResult.items.length === 0 && (
+                    <p className="text-sm text-gray-500">
+                      {t("noArticlesFound")}
+                    </p>
+                  )}
+                  <ul>
+                    {feedResult.items.slice(0, 5).map((article) => (
+                      <li
+                        key={article.guid || article.link}
+                        className="mb-3 shadow p-2 rounded bg-white dark:bg-neutral-800"
+                      >
+                        <div className="text-lg mb-3 text-gray-900 dark:text-gray-100">
+                          {article.title}
+                        </div>
+                        <div className="text-gray-700 dark:text-gray-300">
+                          {truncateText(
+                            extractText(
+                              article.summary || article.contentSnippet || "",
+                            ),
+                            50,
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {parseSuccess === false && (
+                <p className="text-sm text-red-500 mt-2 dark:text-red-400">
+                  {t("feedParsingFailed")}
+                </p>
+              )}
+              <Button
+                className="w-full mt-4"
+                disabled={isLoading || !parseSuccess || !feedResult || isAdding}
+                type="submit"
+              >
+                {isAdding ? t("adding") : t("add")}
+              </Button>
+            </form>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }

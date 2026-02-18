@@ -132,6 +132,7 @@
   [role="checkbox"],
   [role="radio"],
   [role="option"],
+  [data-slot="scroll-area-thumb"],
   [role="listbox"] {
     cursor: pointer;
   }
@@ -150,4 +151,12 @@ body {
 
 #root {
   height: 100%;
+}
+
+[data-slot="scroll-area-scrollbar"][data-state="visible"] {
+  animation: fadeIn 0.2s forwards;
+}
+
+[data-slot="scroll-area-scrollbar"][data-state="hidden"] {
+  animation: fadeOut 0.2s forwards;
 }
