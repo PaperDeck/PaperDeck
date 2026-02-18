@@ -13,13 +13,14 @@ import {
 import { useTranslation } from "react-i18next"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
 import useArticles from "@/renderer/hooks/useArticles"
-
+import { useNavigate } from "react-router"
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
   const [isLoading, setIsLoading] = useState(false)
   const { t } = useTranslation()
   const { articles, setArticles } = useArticles()
+  const navigate = useNavigate()
   const fromNow = useRelativeTime()
   const handleRefresh = async () => {
     setIsLoading(true)
@@ -40,6 +41,10 @@ export default function ArticlesList() {
     }
     setIsLoading(false)
   }
+  const handleArticleClick = (id: string) => {
+    const encodeUrl = encodeURIComponent(id)
+    navigate(`/article/${encodeUrl}`)
+  }
   return (
     <div>
       <div className="flex flex-col items-center pt-10">
@@ -56,10 +61,10 @@ export default function ArticlesList() {
             <TooltipContent>{t("refreshFeeds")}</TooltipContent>
           </Tooltip>
         </div>
-        <ul>
+        <div>
           {!articles &&
             [1, 2, 3, 4, 5].map((i) => (
-              <li
+              <div
                 key={i}
                 className="flex flex-col items-start p-5 mb-4 w-md rounded-lg bg-gray-200 dark:bg-neutral-700 animate-pulse"
               >
@@ -67,7 +72,7 @@ export default function ArticlesList() {
                 <Skeleton className="w-[40%] h-4 mb-1" />
                 <Skeleton className="w-[30%] h-3 mb-3" />
                 <Skeleton className="w-full h-4" />
-              </li>
+              </div>
             ))}
           {articles?.length === 0 && (
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -75,9 +80,10 @@ export default function ArticlesList() {
             </p>
           )}
           {articles?.map((article) => (
-            <li
+            <button
               key={article.id}
               className="flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer"
+              onClick={() => handleArticleClick(article.id)}
             >
               <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
                 {article.title}
@@ -90,15 +96,15 @@ export default function ArticlesList() {
                   {fromNow(article.pubDate)}
                 </p>
               )}
-              <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
+              <p className="mt-3 text-base text-gray-700 dark:text-gray-300 text-start">
                 {truncateText(
                   extractText(article.summary || article.content || ""),
                   50,
                 )}
               </p>
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   )
