@@ -55,12 +55,11 @@ export default function ArticlesList() {
         <div className="flex mb-10">
           <Tooltip>
             <TooltipTrigger asChild>
-              <IconButton
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className={isLoading ? "animate-spin opacity-50" : ""}
-              >
-                <RefreshCcw size={32} />
+              <IconButton onClick={handleRefresh} disabled={isLoading}>
+                <RefreshCcw
+                  size={32}
+                  className={isLoading ? "animate-spin opacity-50" : ""}
+                />
               </IconButton>
             </TooltipTrigger>
             <TooltipContent>{t("refreshFeeds")}</TooltipContent>
