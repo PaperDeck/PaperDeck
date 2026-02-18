@@ -17,7 +17,7 @@ import { Skeleton } from "@/renderer/components/ui/skeleton"
 type ArticleWithFeed = Article & {
   feed: Feed
 }
-export default function Articles() {
+export default function ArticlesList() {
   const [articles, setArticles] = useState<ArticleWithFeed[] | null>(null)
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
