@@ -7,15 +7,6 @@ import type { DOMNode } from "html-react-parser"
 import type { ChildNode } from "domhandler"
 import { cn } from "@/renderer/lib/utils"
 
-function getTextFromNode(node: DOMNode | ChildNode): string {
-  if (!node) return ""
-  if (node.type === "text") return (node.data ?? "") as string
-  if ("children" in node && node.children && node.children.length) {
-    return node.children.map((child) => getTextFromNode(child)).join("")
-  }
-  return ""
-}
-
 function isUrl(str: string): boolean {
   try {
     new URL(decodeURIComponent(str))
@@ -23,6 +14,27 @@ function isUrl(str: string): boolean {
   } catch {
     return false
   }
+}
+
+function getTextFromNode(
+  node: DOMNode | ChildNode,
+  opts: { shouldRemoveHeadingAnchor?: boolean } = {},
+): string {
+  const { shouldRemoveHeadingAnchor = false } = opts
+  if (!node) return ""
+  if (
+    shouldRemoveHeadingAnchor &&
+    node.type === "tag" &&
+    node.tagName === "a" &&
+    node.attribs.href.startsWith("#")
+  ) {
+    return ""
+  }
+  if (node.type === "text") return (node.data ?? "") as string
+  if ("children" in node && node.children && node.children.length) {
+    return node.children.map((child) => getTextFromNode(child, opts)).join("")
+  }
+  return ""
 }
 
 export default function Article() {
@@ -42,7 +54,7 @@ export default function Article() {
   const cleanContent = DOMPurify.sanitize(article.content || "")
   return (
     <div className="flex flex-col items-center mt-10">
-      <div className="flex flex-col max-w-xl">
+      <div className="flex flex-col max-w-xl px-5">
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="flex items-center gap-3">
           {article.pubDate && (
@@ -105,7 +117,9 @@ export default function Article() {
                       textSize[domNode.tagName],
                     )}
                   >
-                    {getTextFromNode(domNode)}
+                    {getTextFromNode(domNode, {
+                      shouldRemoveHeadingAnchor: true,
+                    })}
                   </div>
                 )
               }
