@@ -114,7 +114,7 @@ export default function NewFeed({
     const fetchFeed = async () => {
       setIsLoading(true)
       setFeedResult(null)
-      const result = await feedParser(url, 5000)
+      const result = await feedParser(url, 10000)
       if (result.success) {
         setParseSuccess(true)
       } else {
