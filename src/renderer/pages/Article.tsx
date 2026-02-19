@@ -11,6 +11,7 @@ import CodeBlock from "@/renderer/components/CodeBlock"
 import useTheme from "@/renderer/hooks/useTheme"
 import { useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
+import Blockquote from "@/renderer/components/Blockquote"
 
 function isUrl(str: string): boolean {
   try {
@@ -175,6 +176,9 @@ export default function Article() {
                     {codeText}
                   </code>
                 )
+              }
+              if (domNode.type === "tag" && domNode.tagName === "blockquote") {
+                return <Blockquote>{getTextFromNode(domNode)}</Blockquote>
               }
             },
           })}
