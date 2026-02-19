@@ -86,7 +86,7 @@ export default function Article() {
             {article.feed.title}
           </p>
         </div>
-        <div className="flex flex-col text-wrap whitespace-pre-wrap gap-5 mt-3 mb-10">
+        <div className="flex flex-col text-wrap gap-5 mt-3 mb-10">
           {parse(cleanContent, {
             replace: (domNode) => {
               if (domNode.type === "tag" && domNode.tagName === "a") {
