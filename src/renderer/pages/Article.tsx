@@ -9,6 +9,8 @@ import { cn } from "@/renderer/lib/utils"
 import ArticleImage from "@/renderer/components/ArticleImage"
 import CodeBlock from "@/renderer/components/CodeBlock"
 import useTheme from "@/renderer/hooks/useTheme"
+import { useNavigate } from "react-router"
+import { useTranslation } from "react-i18next"
 
 function isUrl(str: string): boolean {
   try {
@@ -47,11 +49,14 @@ export default function Article() {
   const article = articles?.find((a) => a.id === decodedId)
   const openInBrowser = useOpenInBrowser()
   const { theme } = useTheme()
+  const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const isDark =
     theme === "dark" ||
     (theme === "system" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches)
+
   if (!articles) {
     //TODO: Show loading state
     return <></>
@@ -64,6 +69,12 @@ export default function Article() {
   return (
     <div className="flex flex-col items-center mt-10">
       <div className="flex flex-col max-w-xl px-5">
+        <button
+          onClick={() => navigate("/articles")}
+          className="self-start mb-5 text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
+        >
+          &larr; {t("back")}
+        </button>
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="flex items-center gap-3">
           {article.pubDate && (
