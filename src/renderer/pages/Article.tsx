@@ -7,6 +7,8 @@ import type { DOMNode } from "html-react-parser"
 import type { ChildNode } from "domhandler"
 import { cn } from "@/renderer/lib/utils"
 import ArticleImage from "@/renderer/components/ArticleImage"
+import CodeBlock from "@/renderer/components/CodeBlock"
+import useTheme from "@/renderer/hooks/useTheme"
 
 function isUrl(str: string): boolean {
   try {
@@ -44,6 +46,12 @@ export default function Article() {
   const { articles } = useArticles()
   const article = articles?.find((a) => a.id === decodedId)
   const openInBrowser = useOpenInBrowser()
+  const { theme } = useTheme()
+
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
   if (!articles) {
     //TODO: Show loading state
     return <></>
@@ -67,7 +75,7 @@ export default function Article() {
             {article.feed.title}
           </p>
         </div>
-        <div className="flex flex-col gap-5 mt-3 mb-10">
+        <div className="flex flex-col text-wrap whitespace-pre-wrap gap-5 mt-3 mb-10">
           {parse(cleanContent, {
             replace: (domNode) => {
               if (domNode.type === "tag" && domNode.tagName === "a") {
@@ -129,6 +137,33 @@ export default function Article() {
                 if (src) {
                   return <ArticleImage src={src} alt={domNode.attribs.alt} />
                 }
+              }
+              if (
+                domNode.type === "tag" &&
+                domNode.tagName === "pre" &&
+                domNode.children.length > 0 &&
+                domNode.children[0].type === "tag" &&
+                domNode.children[0].tagName === "code"
+              ) {
+                const codeText = getTextFromNode(domNode)
+                const language =
+                  domNode.attribs.class?.split("language-")[1] || "plaintext"
+                return (
+                  <CodeBlock
+                    code={codeText}
+                    theme={isDark ? "dark" : "light"}
+                    language={language}
+                    className="my-3"
+                  ></CodeBlock>
+                )
+              }
+              if (domNode.type === "tag" && domNode.tagName === "code") {
+                const codeText = getTextFromNode(domNode)
+                return (
+                  <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">
+                    {codeText}
+                  </code>
+                )
               }
             },
           })}
