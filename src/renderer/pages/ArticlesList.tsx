@@ -82,7 +82,7 @@ export default function ArticlesList() {
           {articles?.map((article) => (
             <button
               key={article.id}
-              className="flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer"
+              className="flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start"
               onClick={() => handleArticleClick(article.id)}
             >
               <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
@@ -96,7 +96,7 @@ export default function ArticlesList() {
                   {fromNow(article.pubDate)}
                 </p>
               )}
-              <p className="mt-3 text-base text-gray-700 dark:text-gray-300 text-start">
+              <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
                 {truncateText(
                   extractText(article.summary || article.content || ""),
                   50,
