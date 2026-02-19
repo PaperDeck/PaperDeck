@@ -1,6 +1,5 @@
-import type { Article } from "@/../generated/prisma/browser"
-import type FeedItem from "@/shared/types/feedItem"
+import type { Article, Feed } from "@/../generated/prisma/browser"
 
 export type ArticleWithFeed = Article & {
-  feed: FeedItem
+  feed: Feed
 }
