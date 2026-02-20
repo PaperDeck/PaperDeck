@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/electron/main.js",
   "scripts": {
-    "dev": "electron-rebuild -f -w better-sqlite3 && vite",
+    "dev": "concurrently --kill-others \"electron-rebuild -f -w better-sqlite3 && vite\" \"npx react-devtools\"",
     "build-vite": "tsc -b && vite build",
     "prebuild": "node scripts/generate-db.js && npx prisma generate",
     "lint": "eslint .",
@@ -76,6 +76,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
     "@vitest/coverage-v8": "^4.0.18",
+    "concurrently": "^9.2.1",
     "electron": "^40.4.1",
     "electron-builder": "^26.7.0",
     "eslint": "^10.0.0",
