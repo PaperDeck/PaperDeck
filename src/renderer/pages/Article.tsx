@@ -12,6 +12,7 @@ import useTheme from "@/renderer/hooks/useTheme"
 import { useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
 import Blockquote from "@/renderer/components/Blockquote"
+import type { ArticleWithFeed } from "@/shared/types/article"
 
 function isUrl(str: string): boolean {
   try {
@@ -36,6 +37,25 @@ function getProtocolFromUrl(url: string): string {
     return parsedUrl.protocol
   } catch {
     return ""
+  }
+}
+
+function handleImage(domNode: DOMNode, article: ArticleWithFeed) {
+  if (domNode.type !== "tag" || domNode.tagName !== "img") {
+    return
+  }
+  const src = domNode.attribs.src
+  let imageSrc
+  if (src) {
+    if (src.startsWith("http://") || src.startsWith("https://")) {
+      imageSrc = src
+    } else {
+      const feedLink = article.feed.url
+      imageSrc = `${getProtocolFromUrl(feedLink)}//${getDomainFromUrl(feedLink)}${src.startsWith("/") ? "" : "/"}${src}`
+    }
+  }
+  if (imageSrc) {
+    return <ArticleImage src={imageSrc} alt={domNode.attribs.alt} />
   }
 }
 
@@ -133,6 +153,15 @@ export default function Article() {
               }
               if (
                 domNode.type === "tag" &&
+                domNode.tagName === "p" &&
+                domNode.children.length > 0 &&
+                domNode.children[0].type === "tag" &&
+                domNode.children[0].tagName === "img"
+              ) {
+                return handleImage(domNode.children[0], article)
+              }
+              if (
+                domNode.type === "tag" &&
                 (domNode.tagName === "h1" ||
                   domNode.tagName === "h2" ||
                   domNode.tagName === "h3" ||
@@ -162,21 +191,7 @@ export default function Article() {
                 )
               }
               if (domNode.type === "tag" && domNode.tagName === "img") {
-                const src = domNode.attribs.src
-                let imageSrc
-                if (src) {
-                  if (src.startsWith("http://") || src.startsWith("https://")) {
-                    imageSrc = src
-                  } else {
-                    const feedLink = article.feed.url
-                    imageSrc = `${getProtocolFromUrl(feedLink)}//${getDomainFromUrl(feedLink)}${src.startsWith("/") ? "" : "/"}${src}`
-                  }
-                }
-                if (imageSrc) {
-                  return (
-                    <ArticleImage src={imageSrc} alt={domNode.attribs.alt} />
-                  )
-                }
+                return handleImage(domNode, article)
               }
               if (
                 domNode.type === "tag" &&
