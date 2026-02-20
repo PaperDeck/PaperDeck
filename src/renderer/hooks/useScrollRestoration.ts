@@ -11,7 +11,6 @@ function useScrollRestoration(pageKey: string) {
       console.warn("Scroll area not found for scroll restoration.")
       return
     }
-    console.log(`Restoring scroll position for ${pageKey}: ${savedScrollY}px`)
     scrollArea.scrollTo(0, parseInt(savedScrollY))
     sessionStorage.removeItem(pageKey)
     return () => {
@@ -26,9 +25,6 @@ function useScrollRestoration(pageKey: string) {
         return
       }
       scrollRef.current = scrollArea.scrollTop
-      console.log(
-        `Saving scroll position for ${pageKey}: ${scrollRef.current}px`,
-      )
       sessionStorage.setItem(pageKey, scrollRef.current.toString())
     }
   }, [pageKey])
