@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import ThemeProviderContext from "@/renderer/contexts/themeContext"
+import ThemeContext from "@/renderer/contexts/themeContext"
 import type { IDataStorage } from "@/shared/types/dataStorage"
 import { useDataStorage } from "@/renderer/hooks/useApi"
 
@@ -54,8 +54,8 @@ export default function ThemeProvider({
   }
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeContext.Provider {...props} value={value}>
       {children}
-    </ThemeProviderContext.Provider>
+    </ThemeContext.Provider>
   )
 }

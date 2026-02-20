@@ -7,6 +7,8 @@ import feedSyncService from "@/electron/services/feedSyncService"
 import feedParser from "@/electron/services/feedParser"
 import fs from "fs"
 import dataStorage from "@/electron/services/dataStorage"
+import openInBrowser from "@/electron/utils/openInBrowser"
+import fetchImage from "@/electron/utils/fetchImage"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -66,11 +68,13 @@ app.whenReady().then(() => {
   if (isProduction) {
     initDatabase()
   }
-  registerAsyncService("articleService", articleService)
-  registerAsyncService("feedService", feedService)
-  registerAsyncService("feedSyncService", feedSyncService)
-  registerAsyncFunction("feedParser", feedParser)
-  registerAsyncService("dataStorage", dataStorage)
+  registerService("articleService", articleService)
+  registerService("feedService", feedService)
+  registerService("feedSyncService", feedSyncService)
+  registerFunction("feedParser", feedParser)
+  registerFunction("openInBrowser", openInBrowser)
+  registerFunction("fetchImage", fetchImage)
+  registerService("dataStorage", dataStorage)
 
   createWindow()
 
@@ -87,9 +91,9 @@ app.on("window-all-closed", () => {
   }
 })
 
-function wrapAsyncHandler<T>(
+function wrapHandler<T>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handler: (...args: any[]) => Promise<T>,
+  handler: (...args: any[]) => any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): (...args: any[]) => Promise<ServiceResponse<T>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,10 +137,10 @@ function wrapAsyncHandler<T>(
   }
 }
 
-function registerAsyncService<T>(channelName: string, service: T) {
+function registerService<T>(channelName: string, service: T) {
   ipcMain.handle(
     channelName,
-    wrapAsyncHandler(
+    wrapHandler(
       async (
         _event: unknown,
         methodName: keyof T,
@@ -153,13 +157,13 @@ function registerAsyncService<T>(channelName: string, service: T) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function registerAsyncFunction<T extends (...args: any[]) => Promise<any>>(
+function registerFunction<T extends (...args: any[]) => any>(
   channelName: string,
   func: T,
 ) {
   ipcMain.handle(
     channelName,
-    wrapAsyncHandler(async (_event: unknown, ...args: Parameters<T>) => {
+    wrapHandler(async (_event: unknown, ...args: Parameters<T>) => {
       return await func(...args)
     }),
   )

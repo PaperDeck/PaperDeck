@@ -13,3 +13,9 @@ export const useFeedParser = () => {
 export const useDataStorage = () => {
   return window.ipcBridge.dataStorage
 }
+export const useOpenInBrowser = () => {
+  return window.ipcBridge.openInBrowser
+}
+export const useFetchImage = () => {
+  return window.ipcBridge.fetchImage
+}

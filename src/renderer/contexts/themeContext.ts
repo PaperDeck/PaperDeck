@@ -11,6 +11,6 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
 }
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
+const ThemeContext = createContext<ThemeProviderState>(initialState)
 
-export default ThemeProviderContext
+export default ThemeContext

@@ -3,7 +3,7 @@ import NewFeed from "@/renderer/components/NewFeed"
 import { Button } from "@/renderer/components/ui/button"
 import { useState } from "react"
 import { Link } from "react-router"
-import { useTheme } from "@/renderer/hooks/useTheme"
+import useTheme from "@/renderer/hooks/useTheme"
 import {
   DropdownMenu,
   DropdownMenuContent,
