@@ -52,6 +52,7 @@
     "p-limit": "^7.3.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
+    "react-devtools": "^7.0.1",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",
     "react-hot-toast": "^2.6.0",
@@ -92,6 +93,7 @@
     "vite": "^7.2.4",
     "vite-plugin-electron": "^0.29.0",
     "vite-plugin-electron-renderer": "^0.14.6",
+    "vite-plugin-html": "^3.2.2",
     "vitest": "^4.0.18"
   }
 }
