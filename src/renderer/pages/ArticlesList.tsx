@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
 import useArticles from "@/renderer/hooks/useArticles"
 import { useNavigate } from "react-router"
+import useScrollRestoration from "@/renderer/hooks/useScrollRestoration"
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
@@ -22,6 +23,7 @@ export default function ArticlesList() {
   const { articles, setArticles } = useArticles()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
+  useScrollRestoration("articles-list")
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
