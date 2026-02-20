@@ -22,6 +22,23 @@ function isUrl(str: string): boolean {
   }
 }
 
+function getDomainFromUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url)
+    return parsedUrl.hostname
+  } catch {
+    return url
+  }
+}
+function getProtocolFromUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url)
+    return parsedUrl.protocol
+  } catch {
+    return ""
+  }
+}
+
 function getTextFromNode(
   node: DOMNode | ChildNode,
   opts: { shouldRemoveHeadingAnchor?: boolean } = {},
@@ -146,8 +163,19 @@ export default function Article() {
               }
               if (domNode.type === "tag" && domNode.tagName === "img") {
                 const src = domNode.attribs.src
+                let imageSrc
                 if (src) {
-                  return <ArticleImage src={src} alt={domNode.attribs.alt} />
+                  if (src.startsWith("http://") || src.startsWith("https://")) {
+                    imageSrc = src
+                  } else {
+                    const feedLink = article.feed.url
+                    imageSrc = `${getProtocolFromUrl(feedLink)}//${getDomainFromUrl(feedLink)}${src.startsWith("/") ? "" : "/"}${src}`
+                  }
+                }
+                if (imageSrc) {
+                  return (
+                    <ArticleImage src={imageSrc} alt={domNode.attribs.alt} />
+                  )
                 }
               }
               if (
