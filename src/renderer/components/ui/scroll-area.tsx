@@ -7,6 +7,7 @@ function ScrollArea({
   className,
   children,
   horizontal = false,
+  ref,
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
   horizontal?: boolean
@@ -20,6 +21,7 @@ function ScrollArea({
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
         className="focus-visible:ring-ring/50 w-full h-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+        ref={ref}
       >
         {children}
       </ScrollAreaPrimitive.Viewport>

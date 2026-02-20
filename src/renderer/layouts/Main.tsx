@@ -1,9 +1,18 @@
-import { Outlet } from "react-router"
+import { Outlet, useLocation } from "react-router"
 import { ScrollArea } from "@/renderer/components/ui/scroll-area"
+import { useEffect, useRef } from "react"
 
 export default function MainLayout() {
+  const { pathname } = useLocation()
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    scrollAreaRef.current?.scrollTo(0, 0)
+  }, [pathname, scrollAreaRef])
   return (
-    <ScrollArea className="bg-zinc-50 dark:bg-zinc-900 h-screen overflow-auto">
+    <ScrollArea
+      ref={scrollAreaRef}
+      className="bg-zinc-50 dark:bg-zinc-900 h-screen overflow-auto"
+    >
       <Outlet></Outlet>
     </ScrollArea>
   )
