@@ -11,7 +11,10 @@ export default function ArticlesProvider({ children }: ArticlesProviderProps) {
   const articleService = useArticleService()
   useEffect(() => {
     const fetchArticles = async () => {
-      const articles = await articleService.getAll(true)
+      const articles = await articleService.getAll({
+        includeFeeds: true,
+        ignoreRead: true,
+      })
       setArticles(articles.data)
     }
     fetchArticles()

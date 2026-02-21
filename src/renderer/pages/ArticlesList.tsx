@@ -15,6 +15,8 @@ import { Skeleton } from "@/renderer/components/ui/skeleton"
 import useArticles from "@/renderer/hooks/useArticles"
 import { useNavigate } from "react-router"
 import useScrollRestoration from "@/renderer/hooks/useScrollRestoration"
+import { cn } from "@/renderer/lib/utils"
+import type { ArticleWithFeed } from "@/shared/types/article"
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
@@ -32,7 +34,10 @@ export default function ArticlesList() {
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
     )
-    const articles = await articleService.getAll(true)
+    const articles = await articleService.getAll({
+      includeFeeds: true,
+      ignoreRead: true,
+    })
     if (articles.success) {
       setArticles(articles.data)
     } else {
@@ -43,9 +48,12 @@ export default function ArticlesList() {
     }
     setIsLoading(false)
   }
-  const handleArticleClick = (id: string) => {
-    const encodeUrl = encodeURIComponent(id)
+  const handleArticleClick = (article: ArticleWithFeed) => {
+    const encodeUrl = encodeURIComponent(article.id)
     navigate(`/article/${encodeUrl}`)
+    setTimeout(() => {
+      article.isRead = true
+    }, 100)
   }
   return (
     <div>
@@ -84,8 +92,11 @@ export default function ArticlesList() {
           {articles?.map((article) => (
             <button
               key={article.id}
-              className="flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start"
-              onClick={() => handleArticleClick(article.id)}
+              className={cn(
+                "flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
+                article.isRead && "opacity-60",
+              )}
+              onClick={() => handleArticleClick(article)}
             >
               <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
                 {article.title}
