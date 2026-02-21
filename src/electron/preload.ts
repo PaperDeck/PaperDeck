@@ -41,6 +41,9 @@ const api = {
     getTheme: () => ipcRenderer.invoke("dataStorage", "getTheme"),
     setTheme: (theme: "light" | "dark" | "system") =>
       ipcRenderer.invoke("dataStorage", "setTheme", theme),
+    getFilterType: () => ipcRenderer.invoke("dataStorage", "getFilterType"),
+    setFilterType: (filterType: "all" | "unread") =>
+      ipcRenderer.invoke("dataStorage", "setFilterType", filterType),
   },
   openInBrowser: (url: string) => ipcRenderer.invoke("openInBrowser", url),
   fetchImage: (url: string) => ipcRenderer.invoke("fetchImage", url),

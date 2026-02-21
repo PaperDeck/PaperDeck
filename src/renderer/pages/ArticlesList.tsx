@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import truncateText from "@/renderer/utils/truncateText"
@@ -23,6 +23,7 @@ import {
   DropdownMenu,
   DropdownMenuItem,
 } from "@/renderer/components/ui/dropdown-menu"
+import { useDataStorage } from "@/renderer/hooks/useApi"
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
@@ -30,6 +31,7 @@ export default function ArticlesList() {
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
   const { articles, setArticles } = useArticles()
+  const dataStorage = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
   useScrollRestoration("articles-list")
@@ -67,8 +69,23 @@ export default function ArticlesList() {
   const handleFilterChange = async (newFilter: "all" | "unread") => {
     if (newFilter === filter) return
     setFilter(newFilter)
+    const result = await dataStorage.setFilterType(newFilter)
+    if (!result.success) {
+      console.error("Failed to save filter type:", result.error)
+    }
     await getArticles(newFilter === "unread")
   }
+  useEffect(() => {
+    const fetchFilterType = async () => {
+      const filterTypeResult = await dataStorage.getFilterType()
+      if (filterTypeResult.success) {
+        setFilter(filterTypeResult.data)
+      } else {
+        console.error("Failed to fetch filter type:", filterTypeResult.error)
+      }
+    }
+    fetchFilterType()
+  }, [dataStorage])
   return (
     <div>
       <div className="flex flex-col items-center pt-10">
