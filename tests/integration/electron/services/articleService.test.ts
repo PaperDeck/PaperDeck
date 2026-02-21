@@ -91,7 +91,10 @@ describe.sequential("ArticleService", () => {
     const articlesWithoutFeed = await articleService.getAll()
     expect(articlesWithoutFeed[0].feed).toBeUndefined()
 
-    const articlesWithFeed = await articleService.getAll(true)
+    const articlesWithFeed = await articleService.getAll({
+      includeFeeds: true,
+      ignoreRead: false,
+    })
     expect(articlesWithFeed[0].feed).toBeDefined()
     expect(articlesWithFeed[0].feed?.url).toBe(feedUrl)
   })

@@ -50,11 +50,20 @@ class ArticleService {
       where: { feedUrl },
     })
   }
-  async getAll(includeFeeds = false) {
+  async getAll(
+    prop: { includeFeeds: boolean; ignoreRead: boolean } = {
+      includeFeeds: false,
+      ignoreRead: false,
+    },
+  ) {
+    const { includeFeeds, ignoreRead } = prop
     return prisma.article.findMany({
       orderBy: { pubDate: "desc" },
       include: {
         feed: includeFeeds,
+      },
+      where: {
+        isRead: ignoreRead ? false : undefined,
       },
     })
   }
