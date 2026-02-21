@@ -5,7 +5,7 @@ import renderer from "vite-plugin-electron-renderer"
 import path from "path"
 import { fileURLToPath } from "url"
 import tailwindcss from "@tailwindcss/vite"
-
+import { createHtmlPlugin } from "vite-plugin-html"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -43,6 +43,9 @@ export default defineConfig({
           },
         },
       },
+    }),
+    createHtmlPlugin({
+      minify: true,
     }),
     renderer(),
     tailwindcss(),

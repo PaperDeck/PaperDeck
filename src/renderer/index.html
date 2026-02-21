@@ -2,10 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <% if (process.env.NODE_ENV === 'development') { %>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+    default-src 'self' http://localhost:*;
+    script-src 'self' 'wasm-unsafe-eval' http://localhost:*;
+    connect-src 'self' http://localhost:* ws://localhost:*;
+    style-src 'self' 'unsafe-inline' http://localhost:*;
+    img-src 'self' data: http://localhost:*;"
+    />
+    <!-- Load React DevTools from the local dev server. This runs only in development. -->
+    <script src="http://localhost:8097"></script>
+    <% }else{ %>
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
     />
+    <% } %>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>reader</title>
   </head>
