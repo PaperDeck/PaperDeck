@@ -13,7 +13,7 @@ import feedService from "@/electron/services/feedService"
 import articleService from "@/electron/services/articleService"
 import { ParserError } from "@/shared/types/feedParser"
 import * as feedParserModule from "@/electron/services/feedParser"
-import Parser from "rss-parser"
+import type { ParserOutputType } from "@/electron/services/feedParser"
 
 const feedUrl = `https://example.com/${randomUUID()}`
 
@@ -23,7 +23,7 @@ const testFeed = {
   createdAt: new Date(),
 }
 
-const parsedFeed: Parser.Output<Record<string, unknown>> = {
+const parsedFeed: ParserOutputType = {
   title: "FeedSync Test Feed Title",
   description: "desc",
   link: feedUrl,
@@ -37,6 +37,7 @@ const parsedFeed: Parser.Output<Record<string, unknown>> = {
       contentSnippet: "Summary 1",
       isoDate: "2023-01-01T00:00:00Z",
       pubDate: "2023-01-01T00:00:00Z",
+      "content:encoded": "Content 1",
     },
   ],
 }

@@ -39,3 +39,9 @@ export default async function feedParser(url: string, timeout: number = 10000) {
     throw new ParserError("Feed Parsing Error")
   }
 }
+
+type ParserOutputType = Parser.Output<Record<string, unknown>> & {
+  items: (Parser.Item & { "content:encoded": string })[]
+}
+
+export type { ParserOutputType }
