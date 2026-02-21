@@ -12,5 +12,9 @@
   "feedAlreadyExists": "This feed already exists in your list.",
   "refreshFeeds": "Refresh Feeds",
   "tryAddingSomeFeeds": "Try adding some feeds to see articles here.",
-  "back": "Back"
+  "back": "Back",
+  "allFeeds": "All Feeds",
+  "allArticles": "All Articles",
+  "unreadArticles": "Unread Articles",
+  "filterArticles": "Filter Articles"
 }
