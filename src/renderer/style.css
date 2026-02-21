@@ -133,6 +133,7 @@
   [role="radio"],
   [role="option"],
   [data-slot="scroll-area-thumb"],
+  [data-slot="dropdown-menu-item"],
   [role="listbox"] {
     cursor: pointer;
   }
