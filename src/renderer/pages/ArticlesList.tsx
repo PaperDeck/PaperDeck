@@ -3,7 +3,7 @@ import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import truncateText from "@/renderer/utils/truncateText"
 import extractText from "@/renderer/utils/extractText"
-import { RefreshCcw, ListFilter, Check } from "lucide-react"
+import { RefreshCcw, ListFilter, Check, MailCheck } from "lucide-react"
 import IconButton from "@/renderer/components/IconButton"
 import {
   Tooltip,
@@ -47,6 +47,14 @@ export default function ArticlesList() {
         "Failed to fetch articles after syncing feeds:",
         articles.error,
       )
+    }
+  }
+  const handleMarkAllAsRead = async () => {
+    const result = await articleService.markAllArticlesAsRead()
+    if (result.success) {
+      await getArticles(filter === "unread")
+    } else {
+      console.error("Failed to mark all articles as read:", result.error)
     }
   }
   const handleRefresh = async () => {
@@ -102,7 +110,7 @@ export default function ArticlesList() {
             <TooltipContent>{t("refreshFeeds")}</TooltipContent>
           </Tooltip>
         </div>
-        <div className="w-md mb-1 ml-5">
+        <div className="flex gap-1 w-md mb-1 ml-5">
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -140,6 +148,20 @@ export default function ArticlesList() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger
+              asChild
+              className={cn(
+                (filter === "all" || !articles || articles.length === 0) &&
+                  "hidden",
+              )}
+            >
+              <IconButton onClick={handleMarkAllAsRead}>
+                <MailCheck size={24} />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("markAllRead")}</TooltipContent>
+          </Tooltip>
         </div>
         <div>
           {!articles &&
