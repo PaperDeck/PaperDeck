@@ -24,10 +24,22 @@ import {
   DropdownMenuItem,
 } from "@/renderer/components/ui/dropdown-menu"
 import { useDataStorage } from "@/renderer/hooks/useApi"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogMedia,
+} from "@/renderer/components/ui/alert-dialog"
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
   const [isLoading, setIsLoading] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
   const { articles, setArticles } = useArticles()
@@ -156,12 +168,31 @@ export default function ArticlesList() {
                   "hidden",
               )}
             >
-              <IconButton onClick={handleMarkAllAsRead}>
+              <IconButton onClick={() => setIsDialogOpen(true)}>
                 <MailCheck size={24} />
               </IconButton>
             </TooltipTrigger>
             <TooltipContent>{t("markAllRead")}</TooltipContent>
           </Tooltip>
+          <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialogContent size="sm">
+              <AlertDialogHeader>
+                <AlertDialogMedia>
+                  <MailCheck />
+                </AlertDialogMedia>
+                <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("markAllAsReadConfirmation")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleMarkAllAsRead}>
+                  {t("confirm")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <div>
           {!articles &&

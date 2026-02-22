@@ -17,5 +17,9 @@
   "allArticles": "All Articles",
   "unreadArticles": "Unread Articles",
   "filterArticles": "Filter Articles",
-  "markAllRead": "Mark All Read"
+  "markAllRead": "Mark All Read",
+  "areYouSure": " Are you sure?",
+  "markAllAsReadConfirmation": "This will mark all articles as read.",
+  "cancel": "Cancel",
+  "confirm": "Confirm"
 }
