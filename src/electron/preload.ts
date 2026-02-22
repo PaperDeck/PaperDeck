@@ -22,6 +22,8 @@ const api = {
       ),
     getAll: (prop: { includeFeeds: boolean; ignoreRead: boolean }) =>
       ipcRenderer.invoke("articleService", "getAll", prop),
+    markAllArticlesAsRead: () =>
+      ipcRenderer.invoke("articleService", "markAllArticlesAsRead"),
   },
   feedService: {
     addFeed: (title: string, url: string) =>

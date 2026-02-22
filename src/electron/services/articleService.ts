@@ -38,6 +38,12 @@ class ArticleService {
       data: { isRead: true },
     })
   }
+  async markAllArticlesAsRead() {
+    return prisma.article.updateMany({
+      where: { isRead: false },
+      data: { isRead: true },
+    })
+  }
   async getArticlesByFeedUrl(feedUrl: string, limit = 50) {
     return prisma.article.findMany({
       where: { feedUrl },
