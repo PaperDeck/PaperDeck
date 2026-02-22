@@ -12,5 +12,14 @@
   "feedAlreadyExists": "This feed already exists in your list.",
   "refreshFeeds": "Refresh Feeds",
   "tryAddingSomeFeeds": "Try adding some feeds to see articles here.",
-  "back": "Back"
+  "back": "Back",
+  "allFeeds": "All Feeds",
+  "allArticles": "All Articles",
+  "unreadArticles": "Unread Articles",
+  "filterArticles": "Filter Articles",
+  "markAllRead": "Mark All Read",
+  "areYouSure": " Are you sure?",
+  "markAllAsReadConfirmation": "This will mark all articles as read.",
+  "cancel": "Cancel",
+  "confirm": "Confirm"
 }

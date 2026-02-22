@@ -7,6 +7,11 @@ const schema = {
     enum: ["light", "dark", "system"],
     default: "system",
   },
+  filterType: {
+    type: "string",
+    enum: ["all", "unread"],
+    default: "unread",
+  },
 }
 
 class DataStorage {
@@ -19,6 +24,12 @@ class DataStorage {
   }
   setTheme(theme: IDataStorage["theme"]) {
     this.store.set("theme", theme)
+  }
+  getFilterType() {
+    return this.store.get("filterType")
+  }
+  setFilterType(filterType: IDataStorage["filterType"]) {
+    this.store.set("filterType", filterType)
   }
 }
 

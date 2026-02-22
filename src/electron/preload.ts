@@ -20,8 +20,10 @@ const api = {
         "deleteAllArticlesByFeedUrl",
         feedUrl,
       ),
-    getAll: (includeFeeds = false) =>
-      ipcRenderer.invoke("articleService", "getAll", includeFeeds),
+    getAll: (prop: { includeFeeds: boolean; ignoreRead: boolean }) =>
+      ipcRenderer.invoke("articleService", "getAll", prop),
+    markAllArticlesAsRead: () =>
+      ipcRenderer.invoke("articleService", "markAllArticlesAsRead"),
   },
   feedService: {
     addFeed: (title: string, url: string) =>
@@ -41,6 +43,9 @@ const api = {
     getTheme: () => ipcRenderer.invoke("dataStorage", "getTheme"),
     setTheme: (theme: "light" | "dark" | "system") =>
       ipcRenderer.invoke("dataStorage", "setTheme", theme),
+    getFilterType: () => ipcRenderer.invoke("dataStorage", "getFilterType"),
+    setFilterType: (filterType: "all" | "unread") =>
+      ipcRenderer.invoke("dataStorage", "setFilterType", filterType),
   },
   openInBrowser: (url: string) => ipcRenderer.invoke("openInBrowser", url),
   fetchImage: (url: string) => ipcRenderer.invoke("fetchImage", url),

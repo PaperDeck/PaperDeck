@@ -13,6 +13,8 @@ import { useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
 import Blockquote from "@/renderer/components/Blockquote"
 import type { ArticleWithFeed } from "@/shared/types/article"
+import { useArticleService } from "@/renderer/hooks/useApi"
+import { useEffect } from "react"
 
 function isUrl(str: string): boolean {
   try {
@@ -86,6 +88,7 @@ export default function Article() {
   const { articles } = useArticles()
   const article = articles?.find((a) => a.id === decodedId)
   const openInBrowser = useOpenInBrowser()
+  const articleService = useArticleService()
   const { theme } = useTheme()
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -94,7 +97,17 @@ export default function Article() {
     theme === "dark" ||
     (theme === "system" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches)
-
+  useEffect(() => {
+    const markRead = async () => {
+      if (article && !article.isRead) {
+        const result = await articleService.markArticleAsRead(article.id)
+        if (!result.success) {
+          console.error("Failed to mark article as read:", result.error)
+        }
+      }
+    }
+    markRead()
+  }, [article, articleService])
   if (!articles) {
     //TODO: Show loading state
     return <></>

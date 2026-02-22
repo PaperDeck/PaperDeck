@@ -38,6 +38,12 @@ class ArticleService {
       data: { isRead: true },
     })
   }
+  async markAllArticlesAsRead() {
+    return prisma.article.updateMany({
+      where: { isRead: false },
+      data: { isRead: true },
+    })
+  }
   async getArticlesByFeedUrl(feedUrl: string, limit = 50) {
     return prisma.article.findMany({
       where: { feedUrl },
@@ -50,11 +56,20 @@ class ArticleService {
       where: { feedUrl },
     })
   }
-  async getAll(includeFeeds = false) {
+  async getAll(
+    prop: { includeFeeds: boolean; ignoreRead: boolean } = {
+      includeFeeds: false,
+      ignoreRead: false,
+    },
+  ) {
+    const { includeFeeds, ignoreRead } = prop
     return prisma.article.findMany({
       orderBy: { pubDate: "desc" },
       include: {
         feed: includeFeeds,
+      },
+      where: {
+        isRead: ignoreRead ? false : undefined,
       },
     })
   }
