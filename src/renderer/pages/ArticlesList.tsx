@@ -42,29 +42,15 @@ export default function ArticlesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
-  const { articles, setArticles } = useArticles()
+  const { articles, fetchArticles } = useArticles()
   const dataStorage = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
   useScrollRestoration("articles-list")
-  const getArticles = async (ignoreRead: boolean) => {
-    const articles = await articleService.getAll({
-      includeFeeds: true,
-      ignoreRead: ignoreRead,
-    })
-    if (articles.success) {
-      setArticles(articles.data)
-    } else {
-      console.error(
-        "Failed to fetch articles after syncing feeds:",
-        articles.error,
-      )
-    }
-  }
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
-      await getArticles(filter === "unread")
+      await fetchArticles(articleService, filter === "unread")
     } else {
       console.error("Failed to mark all articles as read:", result.error)
     }
@@ -72,7 +58,7 @@ export default function ArticlesList() {
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
-    await getArticles(filter === "unread")
+    await fetchArticles(articleService, filter === "unread")
     //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
@@ -82,9 +68,6 @@ export default function ArticlesList() {
   const handleArticleClick = (article: ArticleWithFeed) => {
     const encodeUrl = encodeURIComponent(article.id)
     navigate(`/article/${encodeUrl}`)
-    setTimeout(() => {
-      article.isRead = true
-    }, 100)
   }
   const handleFilterChange = async (newFilter: "all" | "unread") => {
     if (newFilter === filter) return
@@ -93,7 +76,7 @@ export default function ArticlesList() {
     if (!result.success) {
       console.error("Failed to save filter type:", result.error)
     }
-    await getArticles(newFilter === "unread")
+    await fetchArticles(articleService, newFilter === "unread")
   }
   useEffect(() => {
     const fetchFilterType = async () => {

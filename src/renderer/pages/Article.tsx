@@ -85,7 +85,7 @@ function getTextFromNode(
 export default function Article() {
   const { id } = useParams<{ id: string }>()
   const decodedId = decodeURIComponent(id || "")
-  const { articles } = useArticles()
+  const { articles, markArticleAsRead } = useArticles()
   const article = articles?.find((a) => a.id === decodedId)
   const openInBrowser = useOpenInBrowser()
   const articleService = useArticleService()
@@ -101,13 +101,15 @@ export default function Article() {
     const markRead = async () => {
       if (article && !article.isRead) {
         const result = await articleService.markArticleAsRead(article.id)
-        if (!result.success) {
+        if (result.success) {
+          await markArticleAsRead(article.id)
+        } else {
           console.error("Failed to mark article as read:", result.error)
         }
       }
     }
     markRead()
-  }, [article, articleService])
+  }, [article, articleService, markArticleAsRead])
   if (!articles) {
     //TODO: Show loading state
     return <></>
