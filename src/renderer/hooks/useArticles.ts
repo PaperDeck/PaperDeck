@@ -6,7 +6,7 @@ import type { IpcBridge } from "@/electron/preload"
 interface ArticlesState {
   articles: ArticleWithFeed[] | null
   setArticles: (articles: ArticleWithFeed[]) => void
-  fetchArticles: (
+  getArticles: (
     articleService: IpcBridge["articleService"],
     ignoreRead: boolean,
   ) => Promise<void>
@@ -16,7 +16,7 @@ interface ArticlesState {
 const useArticlesStore = create<ArticlesState>((set) => ({
   articles: null,
   setArticles: (articles) => set({ articles }),
-  fetchArticles: async (
+  getArticles: async (
     articleService: IpcBridge["articleService"],
     ignoreRead: boolean,
   ) => {
@@ -43,23 +43,23 @@ const useArticlesStore = create<ArticlesState>((set) => ({
 }))
 
 export default function useArticles(): ArticlesState {
-  const { articles, setArticles, fetchArticles, markArticleAsRead } =
+  const { articles, setArticles, getArticles, markArticleAsRead } =
     useArticlesStore()
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
   useEffect(() => {
     const loadArticles = async () => {
       const filterTypeResult = await dataStorage.getFilterType()
-      fetchArticles(articleService, filterTypeResult.data === "unread")
+      getArticles(articleService, filterTypeResult.data === "unread")
     }
     if (articles === null) {
       loadArticles()
     }
-  }, [articleService, articles, dataStorage, fetchArticles])
+  }, [articleService, articles, dataStorage, getArticles])
   return {
     articles,
     setArticles,
-    fetchArticles,
+    getArticles,
     markArticleAsRead,
   }
 }

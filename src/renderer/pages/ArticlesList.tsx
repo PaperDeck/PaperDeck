@@ -42,7 +42,7 @@ export default function ArticlesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
-  const { articles, fetchArticles } = useArticles()
+  const { articles, getArticles } = useArticles()
   const dataStorage = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
@@ -50,7 +50,7 @@ export default function ArticlesList() {
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
-      await fetchArticles(articleService, filter === "unread")
+      await getArticles(articleService, filter === "unread")
     } else {
       console.error("Failed to mark all articles as read:", result.error)
     }
@@ -58,7 +58,7 @@ export default function ArticlesList() {
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
-    await fetchArticles(articleService, filter === "unread")
+    await getArticles(articleService, filter === "unread")
     //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
@@ -76,7 +76,7 @@ export default function ArticlesList() {
     if (!result.success) {
       console.error("Failed to save filter type:", result.error)
     }
-    await fetchArticles(articleService, newFilter === "unread")
+    await getArticles(articleService, newFilter === "unread")
   }
   useEffect(() => {
     const fetchFilterType = async () => {
