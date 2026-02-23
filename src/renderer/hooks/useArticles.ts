@@ -1,11 +1,17 @@
 import { create } from "zustand"
 import type { ArticleWithFeed } from "@/shared/types/article"
-import { useArticleService, useDataStorage } from "@/renderer/hooks/useApi"
+import {
+  useArticleService,
+  useDataStorage,
+  useFeedSyncService,
+} from "@/renderer/hooks/useApi"
 import { useEffect } from "react"
 import type { IpcBridge } from "@/electron/preload"
 interface ArticlesState {
   articles: ArticleWithFeed[] | null
+  hasInitialized: boolean
   setArticles: (articles: ArticleWithFeed[]) => void
+  setHasInitialized: (value: boolean) => void
   getArticles: (
     articleService: IpcBridge["articleService"],
     ignoreRead: boolean,
@@ -15,7 +21,9 @@ interface ArticlesState {
 
 const useArticlesStore = create<ArticlesState>((set) => ({
   articles: null,
+  hasInitialized: false,
   setArticles: (articles) => set({ articles }),
+  setHasInitialized: (value) => set({ hasInitialized: value }),
   getArticles: async (
     articleService: IpcBridge["articleService"],
     ignoreRead: boolean,
@@ -43,22 +51,48 @@ const useArticlesStore = create<ArticlesState>((set) => ({
 }))
 
 export default function useArticles(): ArticlesState {
-  const { articles, setArticles, getArticles, markArticleAsRead } =
-    useArticlesStore()
+  const {
+    articles,
+    hasInitialized,
+    setArticles,
+    setHasInitialized,
+    getArticles,
+    markArticleAsRead,
+  } = useArticlesStore()
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
+  const feedSyncService = useFeedSyncService()
+
   useEffect(() => {
-    const loadArticles = async () => {
-      const filterTypeResult = await dataStorage.getFilterType()
-      getArticles(articleService, filterTypeResult.data === "unread")
+    const initializeArticles = async () => {
+      if (!hasInitialized) {
+        const filterTypeResult = await dataStorage.getFilterType()
+        const ignoreRead = filterTypeResult.data === "unread"
+
+        await getArticles(articleService, ignoreRead)
+
+        feedSyncService.syncFeeds().then(() => {
+          getArticles(articleService, ignoreRead)
+        })
+
+        setHasInitialized(true)
+      }
     }
-    if (articles === null) {
-      loadArticles()
-    }
-  }, [articleService, articles, dataStorage, getArticles])
+    initializeArticles()
+  }, [
+    hasInitialized,
+    articleService,
+    dataStorage,
+    feedSyncService,
+    getArticles,
+    setHasInitialized,
+  ])
+
   return {
     articles,
+    hasInitialized,
     setArticles,
+    setHasInitialized,
     getArticles,
     markArticleAsRead,
   }

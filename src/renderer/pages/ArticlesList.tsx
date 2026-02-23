@@ -42,7 +42,7 @@ export default function ArticlesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
-  const { articles, getArticles } = useArticles()
+  const { articles, getArticles, hasInitialized } = useArticles()
   const dataStorage = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
@@ -95,10 +95,17 @@ export default function ArticlesList() {
         <div className="flex mb-5">
           <Tooltip>
             <TooltipTrigger asChild>
-              <IconButton onClick={handleRefresh} disabled={isLoading}>
+              <IconButton
+                onClick={handleRefresh}
+                disabled={isLoading || !hasInitialized}
+              >
                 <RefreshCcw
                   size={32}
-                  className={isLoading ? "animate-spin opacity-50" : ""}
+                  className={
+                    isLoading || !hasInitialized
+                      ? "animate-spin opacity-50"
+                      : ""
+                  }
                 />
               </IconButton>
             </TooltipTrigger>
