@@ -199,7 +199,7 @@ export default function ArticlesList() {
             <button
               key={article.id}
               className={cn(
-                "flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
+                "flex flex-col items-start p-5 mb-4 w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
                 article.isRead && filter === "unread" && "opacity-60",
               )}
               onClick={() => handleArticleClick(article)}
