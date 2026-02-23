@@ -1,4 +1,4 @@
-import { useParams } from "react-router"
+import { Navigate, useParams } from "react-router"
 import useArticles from "@/renderer/hooks/useArticles"
 import DOMPurify from "dompurify"
 import parse from "html-react-parser"
@@ -111,12 +111,11 @@ export default function Article() {
     markRead()
   }, [article, articleService, markArticleAsRead])
   if (!articles) {
-    //TODO: Show loading state
     return <></>
   }
   if (!article) {
-    //TODO: Show article not found state
-    return <></>
+    console.error("Article not found:", decodedId)
+    return <Navigate to="/articles" replace></Navigate>
   }
   const cleanContent = DOMPurify.sanitize(article.content || "")
   return (
