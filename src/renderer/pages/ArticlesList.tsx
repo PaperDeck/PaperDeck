@@ -42,7 +42,7 @@ export default function ArticlesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
-  const { articles, getArticles, hasInitialized } = useArticles()
+  const { articles, getArticles, hasInitialized, fetchResult } = useArticles()
   const dataStorage = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
@@ -197,10 +197,18 @@ export default function ArticlesList() {
                 <Skeleton className="w-full h-4" />
               </div>
             ))}
-          {articles?.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t("tryAddingSomeFeeds")}
-            </p>
+          {articles && articles.length === 0 && (
+            <>
+              {fetchResult && fetchResult.allFeeds === 0 ? (
+                <p className="text-md text-gray-500 dark:text-gray-400">
+                  {t("tryAddingSomeFeeds")}
+                </p>
+              ) : (
+                <p className="text-md text-gray-500 dark:text-gray-400">
+                  {t("noNewArticles")}
+                </p>
+              )}
+            </>
           )}
           {articles?.map((article) => (
             <button
