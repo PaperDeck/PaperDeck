@@ -1,12 +1,20 @@
 import { create } from "zustand"
 import type { ArticleWithFeed } from "@/shared/types/article"
-import { useArticleService, useDataStorage } from "@/renderer/hooks/useApi"
+import {
+  useArticleService,
+  useDataStorage,
+  useFeedSyncService,
+} from "@/renderer/hooks/useApi"
 import { useEffect } from "react"
 import type { IpcBridge } from "@/electron/preload"
+import { useState } from "react"
+import type { SyncResult } from "@/electron/services/feedSyncService"
 interface ArticlesState {
   articles: ArticleWithFeed[] | null
+  hasInitialized: boolean
   setArticles: (articles: ArticleWithFeed[]) => void
-  fetchArticles: (
+  setHasInitialized: (value: boolean) => void
+  getArticles: (
     articleService: IpcBridge["articleService"],
     ignoreRead: boolean,
   ) => Promise<void>
@@ -15,8 +23,10 @@ interface ArticlesState {
 
 const useArticlesStore = create<ArticlesState>((set) => ({
   articles: null,
+  hasInitialized: false,
   setArticles: (articles) => set({ articles }),
-  fetchArticles: async (
+  setHasInitialized: (value) => set({ hasInitialized: value }),
+  getArticles: async (
     articleService: IpcBridge["articleService"],
     ignoreRead: boolean,
   ) => {
@@ -42,24 +52,56 @@ const useArticlesStore = create<ArticlesState>((set) => ({
   },
 }))
 
-export default function useArticles(): ArticlesState {
-  const { articles, setArticles, fetchArticles, markArticleAsRead } =
-    useArticlesStore()
+interface UseArticlesReturn extends ArticlesState {
+  fetchResult: SyncResult | null
+}
+
+export default function useArticles(): UseArticlesReturn {
+  const {
+    articles,
+    hasInitialized,
+    setArticles,
+    setHasInitialized,
+    getArticles,
+    markArticleAsRead,
+  } = useArticlesStore()
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
+  const feedSyncService = useFeedSyncService()
+  const [fetchResult, setFetchResult] = useState(null)
   useEffect(() => {
-    const loadArticles = async () => {
-      const filterTypeResult = await dataStorage.getFilterType()
-      fetchArticles(articleService, filterTypeResult.data === "unread")
+    const initializeArticles = async () => {
+      if (!hasInitialized) {
+        const filterTypeResult = await dataStorage.getFilterType()
+        const ignoreRead = filterTypeResult.data === "unread"
+
+        await getArticles(articleService, ignoreRead)
+
+        feedSyncService.syncFeeds().then((result) => {
+          setFetchResult(result.data)
+          getArticles(articleService, ignoreRead)
+        })
+
+        setHasInitialized(true)
+      }
     }
-    if (articles === null) {
-      loadArticles()
-    }
-  }, [articleService, articles, dataStorage, fetchArticles])
+    initializeArticles()
+  }, [
+    hasInitialized,
+    articleService,
+    dataStorage,
+    feedSyncService,
+    getArticles,
+    setHasInitialized,
+  ])
+
   return {
     articles,
+    hasInitialized,
     setArticles,
-    fetchArticles,
+    setHasInitialized,
+    getArticles,
     markArticleAsRead,
+    fetchResult,
   }
 }

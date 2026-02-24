@@ -21,5 +21,6 @@
   "areYouSure": " Are you sure?",
   "markAllAsReadConfirmation": "This will mark all articles as read.",
   "cancel": "Cancel",
-  "confirm": "Confirm"
+  "confirm": "Confirm",
+  "noNewArticles": "No new articles."
 }

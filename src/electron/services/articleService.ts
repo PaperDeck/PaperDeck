@@ -6,13 +6,14 @@ class ArticleService {
     const operations = articles.map((article) => {
       const pubDate = article.isoDate ? new Date(article.isoDate) : undefined
       const articleId = article.guid ?? article.link ?? ""
+      const newContent = article["content:encoded"] ?? article.content
       return prisma.article.upsert({
         where: { id: articleId },
         update: {
           title: article.title ?? "",
           summary: article.summary ?? article.contentSnippet ?? "",
           link: article.link ?? "",
-          content: article["content:encoded"] ?? article.content ?? "",
+          ...(newContent && { content: newContent }),
           pubDate,
         },
         create: {
@@ -22,7 +23,7 @@ class ArticleService {
           summary: article.summary ?? article.contentSnippet ?? "",
           pubDate,
           isRead: false,
-          content: article.content ?? "",
+          content: newContent ?? "",
           feed: {
             connect: { url: feedUrl },
           },

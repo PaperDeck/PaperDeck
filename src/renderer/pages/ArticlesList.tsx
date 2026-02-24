@@ -42,7 +42,8 @@ export default function ArticlesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
-  const { articles, fetchArticles } = useArticles()
+  const { articles, getArticles, hasInitialized, fetchResult, setArticles } =
+    useArticles()
   const dataStorage = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
@@ -50,7 +51,7 @@ export default function ArticlesList() {
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
-      await fetchArticles(articleService, filter === "unread")
+      setArticles([])
     } else {
       console.error("Failed to mark all articles as read:", result.error)
     }
@@ -58,7 +59,7 @@ export default function ArticlesList() {
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
-    await fetchArticles(articleService, filter === "unread")
+    await getArticles(articleService, filter === "unread")
     //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
@@ -76,7 +77,7 @@ export default function ArticlesList() {
     if (!result.success) {
       console.error("Failed to save filter type:", result.error)
     }
-    await fetchArticles(articleService, newFilter === "unread")
+    await getArticles(articleService, newFilter === "unread")
   }
   useEffect(() => {
     const fetchFilterType = async () => {
@@ -95,10 +96,17 @@ export default function ArticlesList() {
         <div className="flex mb-5">
           <Tooltip>
             <TooltipTrigger asChild>
-              <IconButton onClick={handleRefresh} disabled={isLoading}>
+              <IconButton
+                onClick={handleRefresh}
+                disabled={isLoading || !hasInitialized}
+              >
                 <RefreshCcw
                   size={32}
-                  className={isLoading ? "animate-spin opacity-50" : ""}
+                  className={
+                    isLoading || !hasInitialized
+                      ? "animate-spin opacity-50"
+                      : ""
+                  }
                 />
               </IconButton>
             </TooltipTrigger>
@@ -190,16 +198,24 @@ export default function ArticlesList() {
                 <Skeleton className="w-full h-4" />
               </div>
             ))}
-          {articles?.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t("tryAddingSomeFeeds")}
-            </p>
+          {articles && articles.length === 0 && (
+            <>
+              {fetchResult && fetchResult.allFeeds === 0 ? (
+                <p className="text-md text-gray-500 dark:text-gray-400">
+                  {t("tryAddingSomeFeeds")}
+                </p>
+              ) : (
+                <p className="text-md text-gray-500 dark:text-gray-400">
+                  {t("noNewArticles")}
+                </p>
+              )}
+            </>
           )}
           {articles?.map((article) => (
             <button
               key={article.id}
               className={cn(
-                "flex flex-col items-start p-5 mb-4 w-full min-w-sm max-w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
+                "flex flex-col items-start p-5 mb-4 w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
                 article.isRead && filter === "unread" && "opacity-60",
               )}
               onClick={() => handleArticleClick(article)}
