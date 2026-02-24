@@ -42,7 +42,8 @@ export default function ArticlesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
-  const { articles, getArticles, hasInitialized, fetchResult } = useArticles()
+  const { articles, getArticles, hasInitialized, fetchResult, setArticles } =
+    useArticles()
   const dataStorage = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
@@ -50,7 +51,7 @@ export default function ArticlesList() {
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
-      await getArticles(articleService, filter === "unread")
+      setArticles([])
     } else {
       console.error("Failed to mark all articles as read:", result.error)
     }
