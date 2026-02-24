@@ -7,6 +7,8 @@ import {
 } from "@/renderer/hooks/useApi"
 import { useEffect } from "react"
 import type { IpcBridge } from "@/electron/preload"
+import { useState } from "react"
+import type { SyncResult } from "@/electron/services/feedSyncService"
 interface ArticlesState {
   articles: ArticleWithFeed[] | null
   hasInitialized: boolean
@@ -50,7 +52,11 @@ const useArticlesStore = create<ArticlesState>((set) => ({
   },
 }))
 
-export default function useArticles(): ArticlesState {
+interface UseArticlesReturn extends ArticlesState {
+  fetchResult: SyncResult | null
+}
+
+export default function useArticles(): UseArticlesReturn {
   const {
     articles,
     hasInitialized,
@@ -62,7 +68,7 @@ export default function useArticles(): ArticlesState {
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
-
+  const [fetchResult, setFetchResult] = useState(null)
   useEffect(() => {
     const initializeArticles = async () => {
       if (!hasInitialized) {
@@ -71,7 +77,8 @@ export default function useArticles(): ArticlesState {
 
         await getArticles(articleService, ignoreRead)
 
-        feedSyncService.syncFeeds().then(() => {
+        feedSyncService.syncFeeds().then((result) => {
+          setFetchResult(result.data)
           getArticles(articleService, ignoreRead)
         })
 
@@ -95,5 +102,6 @@ export default function useArticles(): ArticlesState {
     setHasInitialized,
     getArticles,
     markArticleAsRead,
+    fetchResult,
   }
 }

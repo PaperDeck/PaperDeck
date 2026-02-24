@@ -8,8 +8,15 @@ import articleService from "@/electron/services/articleService"
 const DEFAULT_CONCURRENCY_LIMIT = 25
 const limit = pLimit(DEFAULT_CONCURRENCY_LIMIT)
 
+export interface SyncResult {
+  allFeeds: number
+  successCount: number
+  errorCount: number
+  errors: ParserError[]
+}
+
 class FeedSyncService {
-  async syncFeeds() {
+  async syncFeeds(): Promise<SyncResult> {
     const feeds = await feedService.getFeeds()
     const allErrors: ParserError[] = []
     let errorCount = 0
