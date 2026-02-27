@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import truncateText from "@/renderer/utils/truncateText"
@@ -23,7 +23,7 @@ import {
   DropdownMenu,
   DropdownMenuItem,
 } from "@/renderer/components/ui/dropdown-menu"
-import { useDataStorage } from "@/renderer/hooks/useApi"
+import useDataStorage from "@/renderer/hooks/useDataStorage"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,11 +40,10 @@ export default function ArticlesList() {
   const feedSyncService = useFeedSyncService()
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [filter, setFilter] = useState<"all" | "unread">("unread")
   const { t } = useTranslation()
   const { articles, getArticles, hasInitialized, fetchResult, setArticles } =
     useArticles()
-  const dataStorage = useDataStorage()
+  const { setFilterType, filterType } = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
   useScrollRestoration("articles-list")
@@ -59,7 +58,7 @@ export default function ArticlesList() {
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
-    await getArticles(articleService, filter === "unread")
+    await getArticles(articleService, filterType === "unread")
     //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
@@ -71,25 +70,10 @@ export default function ArticlesList() {
     navigate(`/article/${encodeUrl}`)
   }
   const handleFilterChange = async (newFilter: "all" | "unread") => {
-    if (newFilter === filter) return
-    setFilter(newFilter)
-    const result = await dataStorage.setFilterType(newFilter)
-    if (!result.success) {
-      console.error("Failed to save filter type:", result.error)
-    }
+    if (newFilter === filterType) return
+    setFilterType(newFilter)
     await getArticles(articleService, newFilter === "unread")
   }
-  useEffect(() => {
-    const fetchFilterType = async () => {
-      const filterTypeResult = await dataStorage.getFilterType()
-      if (filterTypeResult.success) {
-        setFilter(filterTypeResult.data)
-      } else {
-        console.error("Failed to fetch filter type:", filterTypeResult.error)
-      }
-    }
-    fetchFilterType()
-  }, [dataStorage])
   return (
     <div>
       <div className="flex flex-col items-center pt-10">
@@ -130,22 +114,22 @@ export default function ArticlesList() {
               onCloseAutoFocus={(e) => e.preventDefault()}
             >
               <DropdownMenuItem
-                className={cn(filter === "all" && "font-bold")}
+                className={cn(filterType === "all" && "font-bold")}
                 onSelect={() => handleFilterChange("all")}
               >
                 <Check
                   size={16}
-                  className={filter === "all" ? "" : "opacity-0"}
+                  className={filterType === "all" ? "" : "opacity-0"}
                 />
                 {t("allArticles")}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className={cn(filter === "unread" && "font-bold")}
+                className={cn(filterType === "unread" && "font-bold")}
                 onSelect={() => handleFilterChange("unread")}
               >
                 <Check
                   size={16}
-                  className={filter === "unread" ? "" : "opacity-0"}
+                  className={filterType === "unread" ? "" : "opacity-0"}
                 />
                 {t("unreadArticles")}
               </DropdownMenuItem>
@@ -155,7 +139,7 @@ export default function ArticlesList() {
             <TooltipTrigger
               asChild
               className={cn(
-                (filter === "all" || !articles || articles.length === 0) &&
+                (filterType === "all" || !articles || articles.length === 0) &&
                   "hidden",
               )}
             >
@@ -216,7 +200,7 @@ export default function ArticlesList() {
               key={article.id}
               className={cn(
                 "flex flex-col items-start p-5 mb-4 w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
-                article.isRead && filter === "unread" && "opacity-60",
+                article.isRead && filterType === "unread" && "opacity-60",
               )}
               onClick={() => handleArticleClick(article)}
             >

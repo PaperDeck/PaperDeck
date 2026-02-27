@@ -8,7 +8,7 @@ import type { ChildNode } from "domhandler"
 import { cn } from "@/renderer/lib/utils"
 import ArticleImage from "@/renderer/components/ArticleImage"
 import CodeBlock from "@/renderer/components/CodeBlock"
-import useTheme from "@/renderer/hooks/useTheme"
+import useDataStorage from "@/renderer/hooks/useDataStorage"
 import { useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
 import Blockquote from "@/renderer/components/Blockquote"
@@ -89,7 +89,7 @@ export default function Article() {
   const article = articles?.find((a) => a.id === decodedId)
   const openInBrowser = useOpenInBrowser()
   const articleService = useArticleService()
-  const { theme } = useTheme()
+  const { theme } = useDataStorage()
   const navigate = useNavigate()
   const { t } = useTranslation()
 
