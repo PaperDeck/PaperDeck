@@ -26,7 +26,20 @@
     "files": [
       "dist/**/*",
       "package.json",
-      "resources/**/*"
+      {
+        "from": "resources",
+        "to": "resources",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "dist",
+        "to": "dist",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "asarUnpack": [
       "resources/**/*"
