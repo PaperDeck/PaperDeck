@@ -24,6 +24,8 @@ const api = {
       ipcRenderer.invoke("articleService", "getAll", prop),
     markAllArticlesAsRead: () =>
       ipcRenderer.invoke("articleService", "markAllArticlesAsRead"),
+    getArticleCotentById: (articleId: string) =>
+      ipcRenderer.invoke("articleService", "getArticleCotentById", articleId),
   },
   feedService: {
     addFeed: (title: string, url: string) =>

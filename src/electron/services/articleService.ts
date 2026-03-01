@@ -57,6 +57,12 @@ class ArticleService {
       where: { feedUrl },
     })
   }
+  async getArticleCotentById(articleId: string) {
+    return prisma.article.findUnique({
+      where: { id: articleId },
+      select: { content: true },
+    })
+  }
   async getAll(
     prop: { includeFeeds: boolean; ignoreRead: boolean } = {
       includeFeeds: false,
