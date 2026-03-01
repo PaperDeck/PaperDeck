@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useCallback } from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import truncateText from "@/renderer/utils/truncateText"
@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
   AlertDialogMedia,
 } from "@/renderer/components/ui/alert-dialog"
+import { useVirtualizer } from "@tanstack/react-virtual"
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
@@ -47,6 +48,17 @@ export default function ArticlesList() {
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
   useScrollRestoration("articles-list")
+  const listRef = useRef<HTMLDivElement>(null)
+  const getScrollElement = useCallback(
+    () => document.querySelector<HTMLElement>("[data-radix-scroll-area-viewport]"),
+    [],
+  )
+  const virtualizer = useVirtualizer({
+    count: articles?.length ?? 0,
+    getScrollElement,
+    estimateSize: () => 160,
+    overscan: 5,
+  })
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
@@ -59,7 +71,6 @@ export default function ArticlesList() {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
     await getArticles(articleService, filterType === "unread")
-    //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
     )
@@ -195,34 +206,56 @@ export default function ArticlesList() {
               )}
             </>
           )}
-          {articles?.map((article) => (
-            <button
-              key={article.id}
-              className={cn(
-                "flex flex-col items-start p-5 mb-4 w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
-                article.isRead && filterType === "unread" && "opacity-60",
-              )}
-              onClick={() => handleArticleClick(article)}
+          {articles && articles.length > 0 && (
+            <div
+              ref={listRef}
+              style={{ height: virtualizer.getTotalSize(), position: "relative" }}
             >
-              <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
-                {article.title}
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-0.5">
-                {article.feed.title}
-              </p>
-              {article.pubDate && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {fromNow(article.pubDate)}
-                </p>
-              )}
-              <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
-                {truncateText(
-                  extractText(article.summary || article.content || ""),
-                  50,
-                )}
-              </p>
-            </button>
-          ))}
+              {virtualizer.getVirtualItems().map((virtualItem) => {
+                const article = articles[virtualItem.index]
+                return (
+                  <div
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    ref={virtualizer.measureElement}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <button
+                      className={cn(
+                        "flex flex-col items-start p-5 mb-4 w-md rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-250 cursor-pointer text-start",
+                        article.isRead && filterType === "unread" && "opacity-60",
+                      )}
+                      onClick={() => handleArticleClick(article)}
+                    >
+                      <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
+                        {article.title}
+                      </h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-0.5">
+                        {article.feed.title}
+                      </p>
+                      {article.pubDate && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {fromNow(article.pubDate)}
+                        </p>
+                      )}
+                      <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
+                        {truncateText(
+                          extractText(article.summary || article.content || ""),
+                          50,
+                        )}
+                      </p>
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
