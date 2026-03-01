@@ -66,11 +66,25 @@ class ArticleService {
     const { includeFeeds, ignoreRead } = prop
     return prisma.article.findMany({
       orderBy: { pubDate: "desc" },
-      include: {
-        feed: includeFeeds,
-      },
       where: {
         isRead: ignoreRead ? false : undefined,
+      },
+      select: {
+        id: true,
+        title: true,
+        summary: true,
+        link: true,
+        pubDate: true,
+        isRead: true,
+        feedUrl: true,
+        ...(includeFeeds && {
+          feed: {
+            select: {
+              title: true,
+              url: true,
+            },
+          },
+        }),
       },
     })
   }
