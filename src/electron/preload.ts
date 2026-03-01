@@ -7,13 +7,6 @@ const api = {
       ipcRenderer.invoke("articleService", "saveArticles", feedUrl, articles),
     markArticleAsRead: (articleId: string) =>
       ipcRenderer.invoke("articleService", "markArticleAsRead", articleId),
-    getArticlesByFeedUrl: (feedUrl: string, limit?: number) =>
-      ipcRenderer.invoke(
-        "articleService",
-        "getArticlesByFeedUrl",
-        feedUrl,
-        limit,
-      ),
     deleteAllArticlesByFeedUrl: (feedUrl: string) =>
       ipcRenderer.invoke(
         "articleService",

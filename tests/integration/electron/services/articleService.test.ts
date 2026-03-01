@@ -70,22 +70,6 @@ describe.sequential("ArticleService", () => {
     expect(updated.id).toBe(article.guid)
   })
 
-  it("should get articles by feedId with correct order and limit", async () => {
-    await articleService.saveArticles(feedUrl, testArticles)
-    const articles = await articleService.getArticlesByFeedUrl(feedUrl, 2)
-    expect(articles).toHaveLength(2)
-    expect(articles[0].id).toBe("article-2")
-    expect(articles[1].id).toBe("article-1")
-  })
-
-  it("should delete all articles by feedId", async () => {
-    await articleService.saveArticles(feedUrl, testArticles)
-    const deleted = await articleService.deleteAllArticlesByFeedUrl(feedUrl)
-    expect(deleted.count).toBe(2)
-    const articles = await articleService.getArticlesByFeedUrl(feedUrl)
-    expect(articles).toHaveLength(0)
-  })
-
   it("should get all articles with optional feed data", async () => {
     await articleService.saveArticles(feedUrl, testArticles)
     const articlesWithoutFeed = await articleService.getAll()

@@ -45,13 +45,6 @@ class ArticleService {
       data: { isRead: true },
     })
   }
-  async getArticlesByFeedUrl(feedUrl: string, limit = 50) {
-    return prisma.article.findMany({
-      where: { feedUrl },
-      orderBy: { pubDate: "desc" },
-      take: limit,
-    })
-  }
   async deleteAllArticlesByFeedUrl(feedUrl: string) {
     return prisma.article.deleteMany({
       where: { feedUrl },
