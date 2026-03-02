@@ -57,14 +57,24 @@ class ArticleService {
     })
   }
   async getAll(
-    prop: { includeFeeds: boolean; ignoreRead: boolean } = {
+    prop: {
+      includeFeeds: boolean
+      ignoreRead: boolean
+      cursor?: {
+        id: string
+      }
+      take?: number
+    } = {
       includeFeeds: false,
       ignoreRead: false,
     },
   ) {
-    const { includeFeeds, ignoreRead } = prop
-    return prisma.article.findMany({
-      orderBy: { pubDate: "desc" },
+    const { includeFeeds, ignoreRead, cursor, take = 20 } = prop
+    const result = await prisma.article.findMany({
+      orderBy: [{ pubDate: "desc" }, { id: "desc" }],
+      take: take + 1,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor.id } : undefined,
       where: {
         isRead: ignoreRead ? false : undefined,
       },
@@ -86,6 +96,14 @@ class ArticleService {
         }),
       },
     })
+    const hasMore = result.length > take
+    if (hasMore) {
+      result.pop()
+    }
+    return {
+      articles: result,
+      hasMore,
+    }
   }
 }
 

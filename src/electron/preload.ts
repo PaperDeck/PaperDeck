@@ -13,8 +13,14 @@ const api = {
         "deleteAllArticlesByFeedUrl",
         feedUrl,
       ),
-    getAll: (prop: { includeFeeds: boolean; ignoreRead: boolean }) =>
-      ipcRenderer.invoke("articleService", "getAll", prop),
+    getAll: (prop: {
+      includeFeeds: boolean
+      ignoreRead: boolean
+      cursor?: {
+        id: string
+      }
+      take?: number
+    }) => ipcRenderer.invoke("articleService", "getAll", prop),
     markAllArticlesAsRead: () =>
       ipcRenderer.invoke("articleService", "markAllArticlesAsRead"),
     getArticleCotentById: (articleId: string) =>
