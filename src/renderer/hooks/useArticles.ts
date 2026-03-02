@@ -98,9 +98,8 @@ export default function useArticles(): UseArticlesReturn {
         feedSyncService.syncFeeds().then((result) => {
           setFetchResult(result.data)
           getArticles({ articleService, ignoreRead })
+          setHasInitialized(true)
         })
-
-        setHasInitialized(true)
       }
     }
     initializeArticles()
