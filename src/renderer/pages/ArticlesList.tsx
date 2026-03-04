@@ -35,17 +35,26 @@ import {
   AlertDialogTitle,
   AlertDialogMedia,
 } from "@/renderer/components/ui/alert-dialog"
+import { Button } from "@/renderer/components/ui/button"
+
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { t } = useTranslation()
-  const { articles, getArticles, hasInitialized, fetchResult, setArticles } =
-    useArticles()
+  const {
+    articles,
+    getArticles,
+    hasInitialized,
+    fetchResult,
+    setArticles,
+    hasMore,
+  } = useArticles()
   const { setFilterType, filterType } = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   useScrollRestoration("articles-list")
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
@@ -58,7 +67,11 @@ export default function ArticlesList() {
   const handleRefresh = async () => {
     setIsLoading(true)
     const result = await feedSyncService.syncFeeds()
-    await getArticles(articleService, filterType === "unread")
+    await getArticles({
+      articleService,
+      ignoreRead: filterType === "unread",
+      append: false,
+    })
     //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
@@ -72,7 +85,27 @@ export default function ArticlesList() {
   const handleFilterChange = async (newFilter: "all" | "unread") => {
     if (newFilter === filterType) return
     setFilterType(newFilter)
-    await getArticles(articleService, newFilter === "unread")
+    await getArticles({
+      articleService,
+      ignoreRead: newFilter === "unread",
+      replace: true,
+    })
+  }
+  const handleLoadMore = async () => {
+    if (isLoadingMore || !hasMore) return
+    setIsLoadingMore(true)
+    await getArticles({
+      articleService,
+      ignoreRead: filterType === "unread",
+      cursor:
+        articles && articles.length > 0
+          ? {
+              id: articles[articles.length - 1].id,
+              pubDate: articles[articles.length - 1].pubDate,
+            }
+          : undefined,
+    })
+    setIsLoadingMore(false)
   }
   return (
     <div>
@@ -170,18 +203,6 @@ export default function ArticlesList() {
           </AlertDialog>
         </div>
         <div>
-          {!articles &&
-            [1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="flex flex-col items-start p-5 mb-4 w-md rounded-lg bg-gray-200 dark:bg-neutral-700 animate-pulse"
-              >
-                <Skeleton className="w-[60%] h-6 mb-2" />
-                <Skeleton className="w-[40%] h-4 mb-1" />
-                <Skeleton className="w-[30%] h-3 mb-3" />
-                <Skeleton className="w-full h-4" />
-              </div>
-            ))}
           {articles && articles.length === 0 && (
             <>
               {fetchResult && fetchResult.allFeeds === 0 ? (
@@ -216,13 +237,29 @@ export default function ArticlesList() {
                 </p>
               )}
               <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
-                {truncateText(
-                  extractText(article.summary || article.content || ""),
-                  50,
-                )}
+                {truncateText(extractText(article.summary || ""), 50)}
               </p>
             </button>
           ))}
+          {hasMore && (
+            <div className="flex justify-center mt-4">
+              <Button onClick={handleLoadMore} disabled={isLoadingMore}>
+                {isLoadingMore ? t("loading") : t("loadMore")}
+              </Button>
+            </div>
+          )}
+          {!articles &&
+            [1, 2, 3, 4, 5].map((i) => (
+              <div
+                className="flex flex-col items-start p-5 mb-4 w-md rounded-lg bg-gray-200 dark:bg-neutral-700 animate-pulse"
+                key={i}
+              >
+                <Skeleton className="w-[60%] h-6 mb-2" />
+                <Skeleton className="w-[40%] h-4 mb-1" />
+                <Skeleton className="w-[30%] h-3 mb-3" />
+                <Skeleton className="w-full h-4" />
+              </div>
+            ))}
         </div>
       </div>
     </div>
