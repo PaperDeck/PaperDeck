@@ -43,14 +43,8 @@ export default function ArticlesList() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { t } = useTranslation()
-  const {
-    articles,
-    getArticles,
-    hasInitialized,
-    fetchResult,
-    setArticles,
-    hasMore,
-  } = useArticles()
+  const { articles, getArticles, fetchResult, setArticles, hasMore } =
+    useArticles()
   const { setFilterType, filterType } = useDataStorage()
   const navigate = useNavigate()
   const fromNow = useRelativeTime()
@@ -120,14 +114,12 @@ export default function ArticlesList() {
             <TooltipTrigger asChild>
               <IconButton
                 onClick={handleRefresh}
-                disabled={isLoading || !hasInitialized}
+                disabled={isLoading || !fetchResult}
               >
                 <RefreshCcw
                   size={32}
                   className={
-                    isLoading || !hasInitialized
-                      ? "animate-spin opacity-50"
-                      : ""
+                    isLoading || !fetchResult ? "animate-spin opacity-50" : ""
                   }
                 />
               </IconButton>
