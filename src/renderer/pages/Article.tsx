@@ -126,7 +126,7 @@ export default function Article() {
     () => DOMPurify.sanitize(articleContent || ""),
     [articleContent],
   )
-  if (!article) {
+  if (!articles) {
     return <></>
   }
   if (!article) {
