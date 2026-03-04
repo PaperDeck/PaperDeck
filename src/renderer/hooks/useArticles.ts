@@ -20,8 +20,11 @@ interface ArticlesState {
     ignoreRead: boolean
     cursor?: {
       id: string
+      pubDate: Date
     }
     take?: number
+    replace?: boolean
+    append?: boolean
   }) => Promise<void>
   markArticleAsRead: (articleId: string) => Promise<void>
   hasMore: boolean
@@ -34,28 +37,49 @@ const useArticlesStore = create<ArticlesState>((set) => ({
   setArticles: (articles) => set({ articles }),
   setHasInitialized: (value) => set({ hasInitialized: value }),
   getArticles: async (prop) => {
-    const { articleService, ignoreRead, cursor, take } = prop
+    const {
+      articleService,
+      ignoreRead,
+      cursor,
+      take,
+      replace = false,
+      append = true,
+    } = prop
     const result = await articleService.getAll({
       includeFeeds: true,
       ignoreRead,
       cursor,
       take,
     })
-
     if (!result.success) {
       console.error("Failed to fetch articles:", result.error)
       return
     }
     set((state) => {
       const existingArticles = state.articles || []
-      const mergedArticles =
-        cursor == null
-          ? result.data.articles
-          : existingArticles.length > 0
-            ? [...existingArticles, ...result.data.articles]
-            : result.data.articles
 
-      return { articles: mergedArticles, hasMore: result.data.hasMore }
+      if (replace || !existingArticles.length) {
+        return {
+          articles: result.data.articles,
+          hasMore: result.data.hasMore,
+        }
+      }
+
+      const mergedArticles = Array.from(
+        new Map(
+          [...existingArticles, ...result.data.articles].map((a) => [a.id, a]),
+        ).values(),
+      )
+      if (!append) {
+        mergedArticles.sort(
+          (a, b) =>
+            new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime(),
+        )
+      }
+      return {
+        articles: mergedArticles,
+        hasMore: result.data.hasMore,
+      }
     })
   },
   markArticleAsRead: async (articleId: string) => {
@@ -97,7 +121,7 @@ export default function useArticles(): UseArticlesReturn {
 
         feedSyncService.syncFeeds().then((result) => {
           setFetchResult(result.data)
-          getArticles({ articleService, ignoreRead })
+          getArticles({ articleService, ignoreRead, append: false })
           setHasInitialized(true)
         })
       }
