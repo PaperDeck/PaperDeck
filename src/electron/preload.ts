@@ -18,6 +18,7 @@ const api = {
       ignoreRead: boolean
       cursor?: {
         id: string
+        pubDate: Date
       }
       take?: number
     }) => ipcRenderer.invoke("articleService", "getAll", prop),

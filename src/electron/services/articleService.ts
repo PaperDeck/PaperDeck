@@ -4,7 +4,7 @@ import type FeedItem from "@/shared/types/feedItem"
 class ArticleService {
   async saveArticles(feedUrl: string, articles: FeedItem[]) {
     const operations = articles.map((article) => {
-      const pubDate = article.isoDate ? new Date(article.isoDate) : undefined
+      const pubDate = article.isoDate ? new Date(article.isoDate) : new Date()
       const articleId = article.guid ?? article.link ?? ""
       const newContent = article["content:encoded"] ?? article.content
       return prisma.article.upsert({
@@ -62,6 +62,7 @@ class ArticleService {
       ignoreRead: boolean
       cursor?: {
         id: string
+        pubDate: Date
       }
       take?: number
     } = {
