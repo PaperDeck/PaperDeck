@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
   AlertDialogMedia,
 } from "@/renderer/components/ui/alert-dialog"
-import { Button } from "@/renderer/components/ui/button"
+import { useOnInView } from "react-intersection-observer"
 
 export default function ArticlesList() {
   const articleService = useArticleService()
@@ -107,6 +107,11 @@ export default function ArticlesList() {
     })
     setIsLoadingMore(false)
   }
+  const inViewRef = useOnInView(async (inView) => {
+    if (inView) {
+      await handleLoadMore()
+    }
+  })
   return (
     <div>
       <div className="flex flex-col items-center pt-10">
@@ -241,18 +246,12 @@ export default function ArticlesList() {
               </p>
             </button>
           ))}
-          {hasMore && (
-            <div className="flex justify-center mt-4">
-              <Button onClick={handleLoadMore} disabled={isLoadingMore}>
-                {isLoadingMore ? t("loading") : t("loadMore")}
-              </Button>
-            </div>
-          )}
-          {!articles &&
+          {(articles || hasMore) &&
             [1, 2, 3, 4, 5].map((i) => (
               <div
                 className="flex flex-col items-start p-5 mb-4 w-md rounded-lg bg-gray-200 dark:bg-neutral-700 animate-pulse"
                 key={i}
+                ref={i === 1 && hasMore ? inViewRef : undefined}
               >
                 <Skeleton className="w-[60%] h-6 mb-2" />
                 <Skeleton className="w-[40%] h-4 mb-1" />
