@@ -1,5 +1,8 @@
 import { prisma } from "@/electron/utils/prisma"
+import type { ArticleWithFeed } from "@/shared/types/article"
 import type FeedItem from "@/shared/types/feedItem"
+import truncateText from "@/shared/utils/truncateText"
+import extractText from "@/electron/utils/extractText"
 
 class ArticleService {
   async saveArticles(feedUrl: string, articles: FeedItem[]) {
@@ -65,13 +68,25 @@ class ArticleService {
         pubDate: Date
       }
       take?: number
+      summaryPreview?: {
+        length: number
+      }
     } = {
       includeFeeds: false,
       ignoreRead: false,
     },
-  ) {
-    const { includeFeeds, ignoreRead, cursor, take = 20 } = prop
-    const result = await prisma.article.findMany({
+  ): Promise<{
+    articles: ArticleWithFeed[]
+    hasMore: boolean
+  }> {
+    const {
+      includeFeeds,
+      ignoreRead,
+      cursor,
+      take = 20,
+      summaryPreview = null,
+    } = prop
+    const result: ArticleWithFeed[] = await prisma.article.findMany({
       orderBy: [{ pubDate: "desc" }, { id: "desc" }],
       take: take + 1,
       skip: cursor ? 1 : 0,
@@ -87,6 +102,7 @@ class ArticleService {
         pubDate: true,
         isRead: true,
         feedUrl: true,
+        createdAt: true,
         ...(includeFeeds && {
           feed: {
             select: {
@@ -100,6 +116,13 @@ class ArticleService {
     const hasMore = result.length > take
     if (hasMore) {
       result.pop()
+    }
+    if (summaryPreview) {
+      result.forEach((article) => {
+        if (!article.summary) return
+        const text = extractText(article.summary)
+        article.preview = truncateText(text, summaryPreview.length)
+      })
     }
     return {
       articles: result,

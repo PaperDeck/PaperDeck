@@ -1,5 +1,7 @@
 import type { Article, Feed } from "@/../generated/prisma/browser"
 
-export interface ArticleWithFeed extends Article {
+export type ArticleWithFeed = Omit<Article, "content"> & {
   feed: Feed
+  content?: string
+  preview?: string
 }

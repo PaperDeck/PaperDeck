@@ -1,8 +1,6 @@
 import { useState } from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
-import truncateText from "@/shared/utils/truncateText"
-import extractText from "@/renderer/utils/extractText"
 import { RefreshCcw, ListFilter, Check, MailCheck } from "lucide-react"
 import IconButton from "@/renderer/components/IconButton"
 import {
@@ -270,7 +268,7 @@ export default function ArticlesList() {
                     </p>
                   )}
                   <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
-                    {truncateText(extractText(article.summary || ""), 50)}
+                    {article.preview || ""}
                   </p>
                 </button>
               )

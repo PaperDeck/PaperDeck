@@ -21,6 +21,9 @@ const api = {
         pubDate: Date
       }
       take?: number
+      summaryPreview?: {
+        length: number
+      }
     }) => ipcRenderer.invoke("articleService", "getAll", prop),
     markAllArticlesAsRead: () =>
       ipcRenderer.invoke("articleService", "markAllArticlesAsRead"),

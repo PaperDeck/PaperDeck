@@ -50,6 +50,9 @@ const useArticlesStore = create<ArticlesState>((set) => ({
       ignoreRead,
       cursor,
       take,
+      summaryPreview: {
+        length: 100,
+      },
     })
     if (!result.success) {
       console.error("Failed to fetch articles:", result.error)
@@ -117,8 +120,12 @@ export default function useArticles(): UseArticlesReturn {
         const filterTypeResult = await dataStorage.getFilterType()
         const ignoreRead = filterTypeResult.data === "unread"
 
-        await getArticles({ articleService, ignoreRead })
-
+        await getArticles({
+          articleService,
+          ignoreRead,
+          replace: true,
+          append: false,
+        })
         feedSyncService.syncFeeds().then((result) => {
           setFetchResult(result.data)
           getArticles({ articleService, ignoreRead, append: false })
