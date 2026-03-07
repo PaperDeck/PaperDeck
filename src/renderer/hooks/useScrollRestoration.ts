@@ -1,11 +1,11 @@
 import { useLayoutEffect, useRef } from "react"
+import useScrollAreaRef from "@/renderer/hooks/useScrollAreaRef"
 
 function useScrollRestoration(pageKey: string) {
   const scrollRef = useRef(0)
+  const scrollAreaRef = useScrollAreaRef()
   useLayoutEffect(() => {
-    const scrollArea = document.querySelector(
-      "[data-radix-scroll-area-viewport]",
-    )
+    const scrollArea = scrollAreaRef.current
     const savedScrollY = sessionStorage.getItem(pageKey) || "0"
     if (!scrollArea) {
       console.warn("Scroll area not found for scroll restoration.")
@@ -27,7 +27,7 @@ function useScrollRestoration(pageKey: string) {
       scrollRef.current = scrollArea.scrollTop
       sessionStorage.setItem(pageKey, scrollRef.current.toString())
     }
-  }, [pageKey])
+  }, [pageKey, scrollAreaRef])
 }
 
 export default useScrollRestoration
