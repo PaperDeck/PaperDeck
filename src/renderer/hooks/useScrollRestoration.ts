@@ -1,31 +1,45 @@
-import { useLayoutEffect, useRef } from "react"
+import { useLayoutEffect } from "react"
 import useScrollAreaRef from "@/renderer/hooks/useScrollAreaRef"
 
-function useScrollRestoration(pageKey: string) {
-  const scrollRef = useRef(0)
+function useScrollRestoration(pageKey: string, options?: { delay?: number }) {
   const scrollAreaRef = useScrollAreaRef()
+  const { delay = 100 } = options || {}
   useLayoutEffect(() => {
     const scrollArea = scrollAreaRef.current
-    const savedScrollY = sessionStorage.getItem(pageKey) || "0"
-    if (!scrollArea) {
-      console.warn("Scroll area not found for scroll restoration.")
-      return
+    if (!scrollArea) return
+
+    const saved = sessionStorage.getItem(pageKey)
+    if (!saved) return
+
+    const target = Number(saved)
+    if (isNaN(target) || target <= 0) return
+    const restore = () => {
+      scrollArea.scrollTop = target
     }
-    scrollArea.scrollTo(0, parseInt(savedScrollY))
-    sessionStorage.removeItem(pageKey)
+
+    const frame = requestAnimationFrame(() => {
+      restore()
+      setTimeout(() => {
+        requestAnimationFrame(restore)
+        sessionStorage.removeItem(pageKey)
+      }, delay)
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [pageKey, delay, scrollAreaRef])
+  useLayoutEffect(() => {
+    const scrollArea = scrollAreaRef.current
     return () => {
-      if (
-        !scrollArea ||
-        "scrollTop" in scrollArea === false ||
-        typeof scrollArea.scrollTop !== "number"
-      ) {
+      if (!scrollArea || typeof scrollArea.scrollTop !== "number") {
         console.warn(
           "Scroll area does not support scrollY for scroll restoration.",
         )
         return
       }
-      scrollRef.current = scrollArea.scrollTop
-      sessionStorage.setItem(pageKey, scrollRef.current.toString())
+      if (scrollArea.scrollTop <= 0) {
+        return
+      }
+      sessionStorage.setItem(pageKey, String(scrollArea.scrollTop))
     }
   }, [pageKey, scrollAreaRef])
 }
