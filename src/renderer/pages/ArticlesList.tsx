@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
-import truncateText from "@/renderer/utils/truncateText"
+import truncateText from "@/shared/utils/truncateText"
 import extractText from "@/renderer/utils/extractText"
 import { RefreshCcw, ListFilter, Check, MailCheck } from "lucide-react"
 import IconButton from "@/renderer/components/IconButton"
