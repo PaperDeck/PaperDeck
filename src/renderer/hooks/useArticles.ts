@@ -7,7 +7,6 @@ import {
 } from "@/renderer/hooks/useApi"
 import { useEffect } from "react"
 import type { IpcBridge } from "@/electron/preload"
-import { useState } from "react"
 import type { SyncResult } from "@/electron/services/feedSyncService"
 
 interface ArticlesState {
@@ -28,6 +27,8 @@ interface ArticlesState {
   }) => Promise<void>
   markArticleAsRead: (articleId: string) => Promise<void>
   hasMore: boolean
+  setFetchResult: (result: SyncResult) => void
+  fetchResult: SyncResult | null
 }
 
 const useArticlesStore = create<ArticlesState>((set) => ({
@@ -94,6 +95,8 @@ const useArticlesStore = create<ArticlesState>((set) => ({
       return { articles: updatedArticles }
     })
   },
+  setFetchResult: (result) => set({ fetchResult: result }),
+  fetchResult: null,
 }))
 
 interface UseArticlesReturn extends ArticlesState {
@@ -109,14 +112,16 @@ export default function useArticles(): UseArticlesReturn {
     getArticles,
     markArticleAsRead,
     hasMore,
+    setFetchResult,
+    fetchResult,
   } = useArticlesStore()
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
-  const [fetchResult, setFetchResult] = useState(null)
   useEffect(() => {
     const initializeArticles = async () => {
       if (!hasInitialized) {
+        setHasInitialized(true)
         const filterTypeResult = await dataStorage.getFilterType()
         const ignoreRead = filterTypeResult.data === "unread"
 
@@ -130,7 +135,6 @@ export default function useArticles(): UseArticlesReturn {
           setFetchResult(result.data)
           getArticles({ articleService, ignoreRead, append: false })
         })
-        setHasInitialized(true)
       }
     }
     initializeArticles()
@@ -141,6 +145,7 @@ export default function useArticles(): UseArticlesReturn {
     feedSyncService,
     getArticles,
     setHasInitialized,
+    setFetchResult,
   ])
 
   return {
@@ -152,5 +157,6 @@ export default function useArticles(): UseArticlesReturn {
     markArticleAsRead,
     fetchResult,
     hasMore,
+    setFetchResult,
   }
 }
