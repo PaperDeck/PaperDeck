@@ -59,25 +59,27 @@ class ArticleService {
       select: { content: true },
     })
   }
-  async getAll(prop: {
-    includeFeeds: boolean
-    ignoreRead: boolean
-    cursor?: {
-      id: string
-      pubDate: Date
-    }
-    take?: number
-    summaryPreview?: {
-      length: number
-    }
-    selectRawSummary?: boolean
-  }): Promise<{
+  async getAll(
+    prop: {
+      includeFeeds?: boolean
+      ignoreRead?: boolean
+      cursor?: {
+        id: string
+        pubDate: Date
+      }
+      take?: number
+      summaryPreview?: {
+        length: number
+      }
+      selectRawSummary?: boolean
+    } = {},
+  ): Promise<{
     articles: ArticleWithFeed[]
     hasMore: boolean
   }> {
     const {
-      includeFeeds,
-      ignoreRead,
+      includeFeeds = false,
+      ignoreRead = false,
       cursor,
       take = 20,
       summaryPreview = null,
