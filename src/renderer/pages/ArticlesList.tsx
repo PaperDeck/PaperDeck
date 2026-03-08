@@ -298,7 +298,7 @@ export default function ArticlesList() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <div className="w-md mb-4">
+      <div className="flex items-center flex-col w-md mb-4">
         {articles && articles.length === 0 && (
           <>
             {fetchResult && fetchResult.allFeeds === 0 ? (
