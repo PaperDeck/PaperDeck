@@ -92,7 +92,7 @@ export default function Article() {
   const { theme } = useDataStorage()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const [articleContent, setArticleCotent] = useState<string | null>(null)
+  const [articleContent, setArticleContent] = useState<string | null>(null)
 
   const isDark =
     theme === "dark" ||
@@ -113,9 +113,9 @@ export default function Article() {
   }, [article, articleService, markArticleAsRead])
   useEffect(() => {
     const fetchContent = async () => {
-      const result = await articleService.getArticleCotentById(decodedId)
+      const result = await articleService.getArticleContentById(decodedId)
       if (result.success) {
-        setArticleCotent(result.data.content)
+        setArticleContent(result.data.content)
       } else {
         console.error("Failed to fetch article content:", result.error)
       }
