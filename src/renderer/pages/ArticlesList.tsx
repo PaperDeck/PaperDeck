@@ -12,7 +12,6 @@ import { useTranslation } from "react-i18next"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
 import useArticles from "@/renderer/hooks/useArticles"
 import { useNavigate } from "react-router"
-import useScrollRestoration from "@/renderer/hooks/useScrollRestoration"
 import useScrollAreaRef from "@/renderer/hooks/useScrollAreaRef"
 import { cn } from "@/renderer/lib/utils"
 import type { ArticleWithFeed } from "@/shared/types/article"
@@ -37,6 +36,8 @@ import {
 import { useOnInView } from "react-intersection-observer"
 import { useVirtualizer } from "@tanstack/react-virtual"
 
+const ARTICLES_PAGE_INDEX_STORAGE_KEY = "articles_page"
+
 const ArticleRow = memo(
   function ArticleRow({
     article,
@@ -51,11 +52,14 @@ const ArticleRow = memo(
     style: React.CSSProperties
     filterType: "all" | "unread"
     index: number
-    onClick: (a: ArticleWithFeed) => void
+    onClick: (article: ArticleWithFeed, index: number) => void
     measureElement: (element: HTMLElement | null) => void
     fromNow: (date: Date) => string
   }) {
-    const handleClick = useCallback(() => onClick(article), [onClick, article])
+    const handleClick = useCallback(
+      () => onClick(article, index),
+      [onClick, article, index],
+    )
     const rowRef = useRef<HTMLButtonElement>(null)
 
     useLayoutEffect(() => {
@@ -113,7 +117,7 @@ export default function ArticlesList() {
   const { setFilterType, filterType } = useDataStorage()
   const navigate = useNavigate()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  useScrollRestoration("articles-list")
+  const [isRestoring, setIsRestoring] = useState(true)
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
@@ -137,7 +141,8 @@ export default function ArticlesList() {
     setIsLoading(false)
   }
   const handleArticleClick = useCallback(
-    (article: ArticleWithFeed) => {
+    (article: ArticleWithFeed, index: number) => {
+      sessionStorage.setItem(ARTICLES_PAGE_INDEX_STORAGE_KEY, String(index))
       const encodeUrl = encodeURIComponent(article.id)
       navigate(`/article/${encodeUrl}`)
     },
@@ -183,6 +188,24 @@ export default function ArticlesList() {
     overscan: 10,
   })
   const virtualItems = virtualizer.getVirtualItems()
+  useLayoutEffect(() => {
+    const index = Number(
+      sessionStorage.getItem(ARTICLES_PAGE_INDEX_STORAGE_KEY),
+    )
+    if (isNaN(index) || index <= 0) {
+      setIsRestoring(false)
+      return
+    }
+    virtualizer.scrollToIndex(index, { align: "start" })
+    const timeoutId = setTimeout(() => {
+      setIsRestoring(false)
+      sessionStorage.removeItem(ARTICLES_PAGE_INDEX_STORAGE_KEY)
+    }, 0)
+
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [virtualizer])
   return (
     <div className="flex flex-col items-center pt-10">
       <div className="flex mb-5">
@@ -294,7 +317,7 @@ export default function ArticlesList() {
             style={{
               height: `${virtualizer.getTotalSize()}px`,
             }}
-            className="w-full relative"
+            className={cn("w-full relative", isRestoring && "opacity-0")}
           >
             {virtualItems.map((virtualItem) => {
               const article = articles[virtualItem.index]
@@ -319,7 +342,9 @@ export default function ArticlesList() {
             })}
           </div>
         )}
-        {!isLoadingMore && hasMore && <div ref={inViewRef}></div>}
+        {!isLoadingMore && !isRestoring && hasMore && (
+          <div ref={inViewRef}></div>
+        )}
         {isLoadingMore && (
           <div className="flex flex-col gap-4">
             {[1, 2, 3].map((i) => (
