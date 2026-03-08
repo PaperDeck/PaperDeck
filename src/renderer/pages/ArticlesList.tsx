@@ -345,9 +345,9 @@ export default function ArticlesList() {
         {!isLoadingMore && !isRestoring && hasMore && (
           <div ref={inViewRef}></div>
         )}
-        {isLoadingMore && (
-          <div className="flex flex-col gap-4">
-            {[1, 2, 3].map((i) => (
+        {(isLoadingMore || !fetchResult) && (
+          <div className="flex flex-col w-full gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
               <div
                 className="flex flex-col items-start p-5 w-full rounded-lg bg-gray-200 dark:bg-neutral-700 animate-pulse"
                 key={i}
