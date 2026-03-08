@@ -59,23 +59,19 @@ class ArticleService {
       select: { content: true },
     })
   }
-  async getAll(
-    prop: {
-      includeFeeds: boolean
-      ignoreRead: boolean
-      cursor?: {
-        id: string
-        pubDate: Date
-      }
-      take?: number
-      summaryPreview?: {
-        length: number
-      }
-    } = {
-      includeFeeds: false,
-      ignoreRead: false,
-    },
-  ): Promise<{
+  async getAll(prop: {
+    includeFeeds: boolean
+    ignoreRead: boolean
+    cursor?: {
+      id: string
+      pubDate: Date
+    }
+    take?: number
+    summaryPreview?: {
+      length: number
+    }
+    selectRawSummary?: boolean
+  }): Promise<{
     articles: ArticleWithFeed[]
     hasMore: boolean
   }> {
@@ -85,6 +81,7 @@ class ArticleService {
       cursor,
       take = 20,
       summaryPreview = null,
+      selectRawSummary = false,
     } = prop
     const result: ArticleWithFeed[] = await prisma.article.findMany({
       orderBy: [{ pubDate: "desc" }, { id: "desc" }],
@@ -122,6 +119,9 @@ class ArticleService {
         if (!article.summary) return
         const text = extractText(article.summary)
         article.preview = truncateText(text, summaryPreview.length)
+        if (!selectRawSummary) {
+          article.summary = null
+        }
       })
     }
     return {
