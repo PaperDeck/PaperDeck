@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useCallback, memo, useLayoutEffect, useRef } from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import { RefreshCcw, ListFilter, Check, MailCheck } from "lucide-react"
@@ -37,6 +37,71 @@ import {
 import { useOnInView } from "react-intersection-observer"
 import { useVirtualizer } from "@tanstack/react-virtual"
 
+const ArticleRow = memo(
+  function ArticleRow({
+    article,
+    style,
+    filterType,
+    onClick,
+    measureElement,
+    index,
+    fromNow,
+  }: {
+    article: ArticleWithFeed
+    style: React.CSSProperties
+    filterType: "all" | "unread"
+    index: number
+    onClick: (a: ArticleWithFeed) => void
+    measureElement: (element: HTMLElement | null) => void
+    fromNow: (date: Date) => string
+  }) {
+    const handleClick = useCallback(() => onClick(article), [onClick, article])
+    const rowRef = useRef<HTMLButtonElement>(null)
+
+    useLayoutEffect(() => {
+      if (rowRef.current) {
+        measureElement(rowRef.current)
+      }
+    }, [measureElement, article.id])
+    return (
+      <button
+        className={cn(
+          "flex flex-col items-start p-5 w-full rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-250 cursor-pointer text-start",
+          article.isRead && filterType === "unread" && "opacity-60",
+        )}
+        style={style}
+        onClick={handleClick}
+        ref={rowRef}
+        data-index={index}
+      >
+        <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
+          {article.title}
+        </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-0.5">
+          {article.feed.title}
+        </p>
+        {article.pubDate && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {fromNow(article.pubDate)}
+          </p>
+        )}
+        <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
+          {article.preview || ""}
+        </p>
+      </button>
+    )
+  },
+  (prev, next) => {
+    return (
+      prev.article.id === next.article.id &&
+      prev.article.isRead === next.article.isRead &&
+      prev.filterType === next.filterType &&
+      prev.index === next.index &&
+      prev.style === next.style
+    )
+  },
+)
+
 export default function ArticlesList() {
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
@@ -47,7 +112,6 @@ export default function ArticlesList() {
     useArticles()
   const { setFilterType, filterType } = useDataStorage()
   const navigate = useNavigate()
-  const fromNow = useRelativeTime()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   useScrollRestoration("articles-list")
   const handleMarkAllAsRead = async () => {
@@ -72,10 +136,13 @@ export default function ArticlesList() {
     )
     setIsLoading(false)
   }
-  const handleArticleClick = (article: ArticleWithFeed) => {
-    const encodeUrl = encodeURIComponent(article.id)
-    navigate(`/article/${encodeUrl}`)
-  }
+  const handleArticleClick = useCallback(
+    (article: ArticleWithFeed) => {
+      const encodeUrl = encodeURIComponent(article.id)
+      navigate(`/article/${encodeUrl}`)
+    },
+    [navigate],
+  )
   const handleFilterChange = async (newFilter: "all" | "unread") => {
     if (newFilter === filterType) return
     setFilterType(newFilter)
@@ -101,6 +168,7 @@ export default function ArticlesList() {
     })
     setIsLoadingMore(false)
   }
+  const fromNow = useRelativeTime()
   const inViewRef = useOnInView(async (inView) => {
     if (inView) {
       await handleLoadMore()
@@ -115,7 +183,6 @@ export default function ArticlesList() {
     overscan: 10,
   })
   const virtualItems = virtualizer.getVirtualItems()
-
   return (
     <div className="flex flex-col items-center pt-10">
       <div className="flex mb-5">
@@ -208,7 +275,7 @@ export default function ArticlesList() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <div className="w-md">
+      <div className="w-md mb-4">
         {articles && articles.length === 0 && (
           <>
             {fetchResult && fetchResult.allFeeds === 0 ? (
@@ -231,22 +298,12 @@ export default function ArticlesList() {
           >
             {virtualItems.map((virtualItem) => {
               const article = articles[virtualItem.index]
-              const isLastItem = virtualItem.index === articles.length - 1
               return (
-                <button
+                <ArticleRow
                   key={virtualItem.key}
-                  data-index={virtualItem.index}
-                  ref={(node) => {
-                    if (!node) return
-                    virtualizer.measureElement(node)
-                    if (isLastItem && hasMore) {
-                      inViewRef(node)
-                    }
-                  }}
-                  className={cn(
-                    "flex flex-col items-start p-5 mb-4 w-full rounded-lg hover:shadow-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-250 cursor-pointer text-start",
-                    article.isRead && filterType === "unread" && "opacity-60",
-                  )}
+                  article={article}
+                  filterType={filterType}
+                  onClick={handleArticleClick}
                   style={{
                     position: "absolute",
                     top: 0,
@@ -254,27 +311,15 @@ export default function ArticlesList() {
                     width: "100%",
                     transform: `translateY(${virtualItem.start}px)`,
                   }}
-                  onClick={() => handleArticleClick(article)}
-                >
-                  <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
-                    {article.title}
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-0.5">
-                    {article.feed.title}
-                  </p>
-                  {article.pubDate && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {fromNow(article.pubDate)}
-                    </p>
-                  )}
-                  <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
-                    {article.preview || ""}
-                  </p>
-                </button>
+                  measureElement={virtualizer.measureElement}
+                  index={virtualItem.index}
+                  fromNow={fromNow}
+                />
               )
             })}
           </div>
         )}
+        {!isLoadingMore && hasMore && <div ref={inViewRef}></div>}
         {isLoadingMore && (
           <div className="flex flex-col gap-4">
             {[1, 2, 3].map((i) => (
