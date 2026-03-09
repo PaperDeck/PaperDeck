@@ -84,4 +84,107 @@ describe.sequential("ArticleService", () => {
     expect(articlesWithFeed[0].feed).toBeDefined()
     expect(articlesWithFeed[0].feed?.url).toBe(feedUrl)
   })
+
+  it("should paginate articles with cursor-based getAll", async () => {
+    const extraArticles = [
+      {
+        guid: "article-3",
+        title: "Article 3",
+        link: `${feedUrl}/article-3`,
+        summary: "Summary 3",
+        content: "Content 3",
+        image: "",
+        rawDate: "2023-01-03T00:00:00Z",
+        datePublished: new Date("2023-01-03T00:00:00Z"),
+      },
+      {
+        guid: "article-4",
+        title: "Article 4",
+        link: `${feedUrl}/article-4`,
+        summary: "Summary 4",
+        content: "Content 4",
+        image: "",
+        rawDate: "2023-01-04T00:00:00Z",
+        datePublished: new Date("2023-01-04T00:00:00Z"),
+      },
+    ]
+    await articleService.saveArticles(feedUrl, [
+      ...testArticles,
+      ...extraArticles,
+    ])
+    const firstPage = await articleService.getAll({
+      take: 1,
+      ignoreRead: false,
+    })
+    expect(firstPage.articles).toHaveLength(1)
+    expect(firstPage.hasMore).toBe(true)
+    const secondPage = await articleService.getAll({
+      take: 1,
+      cursor: {
+        id: firstPage.articles[0].id,
+        pubDate: firstPage.articles[0].pubDate,
+      },
+      ignoreRead: false,
+    })
+    expect(secondPage.articles).toHaveLength(1)
+    const remainingPage = await articleService.getAll({
+      take: 10,
+      cursor: {
+        id: secondPage.articles[0].id,
+        pubDate: secondPage.articles[0].pubDate,
+      },
+      ignoreRead: false,
+    })
+    expect(remainingPage.articles.length).toBeGreaterThanOrEqual(1)
+    expect(remainingPage.hasMore).toBe(false)
+  })
+  it("should get article content by id", async () => {
+    await articleService.saveArticles(feedUrl, testArticles)
+    const article = testArticles[0]
+    const contentResult = await articleService.getArticleContentById(
+      article.guid,
+    )
+    expect(contentResult).toBeDefined()
+    expect(contentResult?.content).toBe(article.content)
+  })
+  it("should provide summaryPreview when fetching articles", async () => {
+    const longSummary = "L".repeat(500)
+    const articlesWithSummaries = [
+      {
+        ...testArticles[0],
+        guid: "article-short-summary",
+        summary: "Short summary",
+      },
+      {
+        ...testArticles[1],
+        guid: "article-long-summary",
+        summary: longSummary,
+      },
+    ]
+    await articleService.saveArticles(feedUrl, articlesWithSummaries)
+    const { articles } = await articleService.getAll({
+      includeFeeds: false,
+      ignoreRead: false,
+      summaryPreview: { length: 100 },
+      selectRawSummary: true,
+    })
+    const short = articles.find((a) => a.id === "article-short-summary")
+    const long = articles.find((a) => a.id === "article-long-summary")
+    expect(short).toBeDefined()
+    expect(long).toBeDefined()
+    expect(short?.preview).toBeDefined()
+    expect(short?.preview).toBe(short?.summary)
+    expect(long?.preview).toBeDefined()
+    expect(long!.preview!.length).toBeLessThan(longSummary.length)
+  })
+  it("should delete all articles by feed URL", async () => {
+    await articleService.saveArticles(feedUrl, testArticles)
+    await articleService.deleteAllArticlesByFeedUrl(feedUrl)
+    const { articles } = await articleService.getAll({
+      includeFeeds: true,
+      ignoreRead: false,
+    })
+    const remainingForFeed = articles.filter((a) => a.feed?.url === feedUrl)
+    expect(remainingForFeed).toHaveLength(0)
+  })
 })

@@ -116,16 +116,16 @@ class ArticleService {
     if (hasMore) {
       result.pop()
     }
-    if (summaryPreview) {
-      result.forEach((article) => {
-        if (!article.summary) return
+    result.forEach((article) => {
+      if (!article.summary) return
+      if (summaryPreview) {
         const text = extractText(article.summary)
         article.preview = truncateText(text, summaryPreview.length)
-        if (!selectRawSummary) {
-          article.summary = null
-        }
-      })
-    }
+      }
+      if (!selectRawSummary) {
+        article.summary = null
+      }
+    })
     return {
       articles: result,
       hasMore,
