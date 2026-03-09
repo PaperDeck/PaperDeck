@@ -7,23 +7,28 @@ const api = {
       ipcRenderer.invoke("articleService", "saveArticles", feedUrl, articles),
     markArticleAsRead: (articleId: string) =>
       ipcRenderer.invoke("articleService", "markArticleAsRead", articleId),
-    getArticlesByFeedUrl: (feedUrl: string, limit?: number) =>
-      ipcRenderer.invoke(
-        "articleService",
-        "getArticlesByFeedUrl",
-        feedUrl,
-        limit,
-      ),
     deleteAllArticlesByFeedUrl: (feedUrl: string) =>
       ipcRenderer.invoke(
         "articleService",
         "deleteAllArticlesByFeedUrl",
         feedUrl,
       ),
-    getAll: (prop: { includeFeeds: boolean; ignoreRead: boolean }) =>
-      ipcRenderer.invoke("articleService", "getAll", prop),
+    getAll: (prop: {
+      includeFeeds: boolean
+      ignoreRead: boolean
+      cursor?: {
+        id: string
+        pubDate: Date
+      }
+      take?: number
+      summaryPreview?: {
+        length: number
+      }
+    }) => ipcRenderer.invoke("articleService", "getAll", prop),
     markAllArticlesAsRead: () =>
       ipcRenderer.invoke("articleService", "markAllArticlesAsRead"),
+    getArticleContentById: (articleId: string) =>
+      ipcRenderer.invoke("articleService", "getArticleContentById", articleId),
   },
   feedService: {
     addFeed: (title: string, url: string) =>

@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/renderer/components/ui/dialog"
 import { Rss } from "lucide-react"
-import truncateText from "@/renderer/utils/truncateText"
+import truncateText from "@/shared/utils/truncateText"
 import { toast } from "react-hot-toast"
 import extractText from "@/renderer/utils/extractText"
 import type Parser from "rss-parser"

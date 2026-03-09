@@ -1,11 +1,12 @@
 import { Outlet, useLocation } from "react-router"
 import { ScrollArea } from "@/renderer/components/ui/scroll-area"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import useDataStorage from "@/renderer/hooks/useDataStorage"
+import useScrollAreaRef from "@/renderer/hooks/useScrollAreaRef"
 
 export default function MainLayout() {
   const { pathname } = useLocation()
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useScrollAreaRef()
   const ignoredPathnames = ["/articles"]
   const { theme } = useDataStorage()
   useEffect(() => {
@@ -33,10 +34,7 @@ export default function MainLayout() {
     root.classList.add(theme)
   }, [theme])
   return (
-    <ScrollArea
-      ref={scrollAreaRef}
-      className="bg-zinc-50 dark:bg-zinc-900 h-screen overflow-auto"
-    >
+    <ScrollArea className="bg-zinc-50 dark:bg-zinc-900 h-screen overflow-auto">
       <Outlet></Outlet>
     </ScrollArea>
   )

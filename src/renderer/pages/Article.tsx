@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next"
 import Blockquote from "@/renderer/components/Blockquote"
 import type { ArticleWithFeed } from "@/shared/types/article"
 import { useArticleService } from "@/renderer/hooks/useApi"
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 function isUrl(str: string): boolean {
   try {
@@ -92,6 +92,7 @@ export default function Article() {
   const { theme } = useDataStorage()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const [articleContent, setArticleContent] = useState<string | null>(null)
 
   const isDark =
     theme === "dark" ||
@@ -110,6 +111,21 @@ export default function Article() {
     }
     markRead()
   }, [article, articleService, markArticleAsRead])
+  useEffect(() => {
+    const fetchContent = async () => {
+      const result = await articleService.getArticleContentById(decodedId)
+      if (result.success) {
+        setArticleContent(result.data.content)
+      } else {
+        console.error("Failed to fetch article content:", result.error)
+      }
+    }
+    fetchContent()
+  }, [decodedId, articleService])
+  const cleanContent = useMemo(
+    () => DOMPurify.sanitize(articleContent || ""),
+    [articleContent],
+  )
   if (!articles) {
     return <></>
   }
@@ -117,10 +133,9 @@ export default function Article() {
     console.error("Article not found:", decodedId)
     return <Navigate to="/articles" replace></Navigate>
   }
-  const cleanContent = DOMPurify.sanitize(article.content || "")
   return (
     <div className="flex flex-col items-center mt-10">
-      <div className="flex flex-col max-w-xl px-5">
+      <div className="flex flex-col w-xl px-5">
         <button
           onClick={() => navigate("/articles")}
           className="self-start mb-5 text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
@@ -138,108 +153,113 @@ export default function Article() {
             {article.feed.title}
           </p>
         </div>
-        <div className="flex flex-col text-wrap wrap-break-word gap-5 mt-3 mb-10">
-          {parse(cleanContent, {
-            replace: (domNode) => {
-              if (domNode.type === "tag" && domNode.tagName === "a") {
-                const href = domNode.attribs.href
-                const isOk = isUrl(href)
-                if (!isOk) {
-                  return (
-                    <a className="text-blue-600 dark:text-blue-400">
-                      {getTextFromNode(domNode)}
-                    </a>
-                  )
+        {articleContent && (
+          <div className="flex flex-col text-wrap wrap-break-word gap-5 mt-3 mb-10">
+            {parse(cleanContent, {
+              replace: (domNode) => {
+                if (domNode.type === "tag" && domNode.tagName === "a") {
+                  const href = domNode.attribs.href
+                  const isOk = isUrl(href)
+                  if (!isOk) {
+                    return (
+                      <a className="text-blue-600 dark:text-blue-400">
+                        {getTextFromNode(domNode)}
+                      </a>
+                    )
+                  }
+                  if (href) {
+                    return (
+                      <a
+                        onClick={(e) => {
+                          e.preventDefault()
+                          openInBrowser(href)
+                        }}
+                        className="text-blue-600 dark:text-blue-400"
+                      >
+                        {getTextFromNode(domNode)}
+                      </a>
+                    )
+                  }
                 }
-                if (href) {
+                if (
+                  domNode.type === "tag" &&
+                  domNode.tagName === "p" &&
+                  domNode.children.length > 0 &&
+                  domNode.children[0].type === "tag" &&
+                  domNode.children[0].tagName === "img"
+                ) {
+                  return handleImage(domNode.children[0], article)
+                }
+                if (
+                  domNode.type === "tag" &&
+                  (domNode.tagName === "h1" ||
+                    domNode.tagName === "h2" ||
+                    domNode.tagName === "h3" ||
+                    domNode.tagName === "h4" ||
+                    domNode.tagName === "h5" ||
+                    domNode.tagName === "h6")
+                ) {
+                  const textSize = {
+                    h1: "text-2xl",
+                    h2: "text-xl",
+                    h3: "text-lg",
+                    h4: "text-base",
+                    h5: "text-sm",
+                    h6: "text-sm",
+                  }
                   return (
-                    <a
-                      onClick={(e) => {
-                        e.preventDefault()
-                        openInBrowser(href)
-                      }}
-                      className="text-blue-600 dark:text-blue-400"
+                    <div
+                      className={cn(
+                        "font-bold mt-4 mb-2",
+                        textSize[domNode.tagName],
+                      )}
                     >
-                      {getTextFromNode(domNode)}
-                    </a>
+                      {getTextFromNode(domNode, {
+                        shouldRemoveHeadingAnchor: true,
+                      })}
+                    </div>
                   )
                 }
-              }
-              if (
-                domNode.type === "tag" &&
-                domNode.tagName === "p" &&
-                domNode.children.length > 0 &&
-                domNode.children[0].type === "tag" &&
-                domNode.children[0].tagName === "img"
-              ) {
-                return handleImage(domNode.children[0], article)
-              }
-              if (
-                domNode.type === "tag" &&
-                (domNode.tagName === "h1" ||
-                  domNode.tagName === "h2" ||
-                  domNode.tagName === "h3" ||
-                  domNode.tagName === "h4" ||
-                  domNode.tagName === "h5" ||
-                  domNode.tagName === "h6")
-              ) {
-                const textSize = {
-                  h1: "text-2xl",
-                  h2: "text-xl",
-                  h3: "text-lg",
-                  h4: "text-base",
-                  h5: "text-sm",
-                  h6: "text-sm",
+                if (domNode.type === "tag" && domNode.tagName === "img") {
+                  return handleImage(domNode, article)
                 }
-                return (
-                  <div
-                    className={cn(
-                      "font-bold mt-4 mb-2",
-                      textSize[domNode.tagName],
-                    )}
-                  >
-                    {getTextFromNode(domNode, {
-                      shouldRemoveHeadingAnchor: true,
-                    })}
-                  </div>
-                )
-              }
-              if (domNode.type === "tag" && domNode.tagName === "img") {
-                return handleImage(domNode, article)
-              }
-              if (
-                domNode.type === "tag" &&
-                domNode.tagName === "pre" &&
-                domNode.children.length > 0 &&
-                domNode.children[0].type === "tag" &&
-                domNode.children[0].tagName === "code"
-              ) {
-                const codeText = getTextFromNode(domNode)
-                const language =
-                  domNode.attribs.class?.split("language-")[1] || "plaintext"
-                return (
-                  <CodeBlock
-                    code={codeText}
-                    theme={isDark ? "dark" : "light"}
-                    language={language}
-                    className="my-3"
-                  ></CodeBlock>
-                )
-              }
-              if (domNode.type === "tag" && domNode.tagName === "code") {
-                const codeText = getTextFromNode(domNode)
-                return (
-                  <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">
-                    {codeText}
-                  </code>
-                )
-              }
-              if (domNode.type === "tag" && domNode.tagName === "blockquote") {
-                return <Blockquote>{getTextFromNode(domNode)}</Blockquote>
-              }
-            },
-          })}
-        </div>
+                if (
+                  domNode.type === "tag" &&
+                  domNode.tagName === "pre" &&
+                  domNode.children.length > 0 &&
+                  domNode.children[0].type === "tag" &&
+                  domNode.children[0].tagName === "code"
+                ) {
+                  const codeText = getTextFromNode(domNode)
+                  const language =
+                    domNode.attribs.class?.split("language-")[1] || "plaintext"
+                  return (
+                    <CodeBlock
+                      code={codeText}
+                      theme={isDark ? "dark" : "light"}
+                      language={language}
+                      className="my-3"
+                    ></CodeBlock>
+                  )
+                }
+                if (domNode.type === "tag" && domNode.tagName === "code") {
+                  const codeText = getTextFromNode(domNode)
+                  return (
+                    <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">
+                      {codeText}
+                    </code>
+                  )
+                }
+                if (
+                  domNode.type === "tag" &&
+                  domNode.tagName === "blockquote"
+                ) {
+                  return <Blockquote>{getTextFromNode(domNode)}</Blockquote>
+                }
+              },
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
