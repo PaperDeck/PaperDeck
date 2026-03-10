@@ -8,6 +8,7 @@ import {
 import { useEffect } from "react"
 import type { IpcBridge } from "@/electron/preload"
 import type { SyncResult } from "@/electron/services/feedSyncService"
+import { useRef } from "react"
 
 interface ArticlesState {
   articles: ArticleWithFeed[] | null
@@ -104,6 +105,7 @@ interface UseArticlesReturn extends ArticlesState {
 }
 
 export default function useArticles(): UseArticlesReturn {
+  const initRef = useRef(false)
   const {
     articles,
     hasInitialized,
@@ -120,24 +122,32 @@ export default function useArticles(): UseArticlesReturn {
   const feedSyncService = useFeedSyncService()
   useEffect(() => {
     const initializeArticles = async () => {
-      if (!hasInitialized) {
-        setHasInitialized(true)
-        const filterTypeResult = await dataStorage.getFilterType()
-        const ignoreRead = filterTypeResult.data === "unread"
+      const filterTypeResult = await dataStorage.getFilterType()
+      const ignoreRead = filterTypeResult.data === "unread"
 
-        await getArticles({
-          articleService,
-          ignoreRead,
-          replace: true,
-          append: false,
-        })
-        feedSyncService.syncFeeds().then((result) => {
-          setFetchResult(result.data)
-          getArticles({ articleService, ignoreRead, append: false })
-        })
+      await getArticles({
+        articleService,
+        ignoreRead,
+        replace: true,
+        append: false,
+      })
+      function feedSyncProcess(total: number, completed: number) {
+        console.log(`Feed sync progress: ${completed}/${total}`)
       }
+      const syncResult = await feedSyncService.syncFeeds(feedSyncProcess)
+      setFetchResult(syncResult)
+      await getArticles({
+        articleService,
+        ignoreRead,
+        replace: true,
+        append: false,
+      })
     }
-    initializeArticles()
+    if (!hasInitialized && !initRef.current) {
+      setHasInitialized(true)
+      initRef.current = true
+      initializeArticles()
+    }
   }, [
     hasInitialized,
     articleService,
