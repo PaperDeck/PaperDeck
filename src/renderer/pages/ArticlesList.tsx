@@ -1,4 +1,11 @@
-import { useState, useCallback, memo, useLayoutEffect, useRef } from "react"
+import {
+  useState,
+  useCallback,
+  memo,
+  useLayoutEffect,
+  useRef,
+  useEffect,
+} from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import { RefreshCcw, ListFilter, Check, MailCheck, Rocket } from "lucide-react"
@@ -126,6 +133,7 @@ export default function ArticlesList() {
     syncProcess,
   } = useArticles()
   const { setFilterType, filterType } = useDataStorage()
+  const filterTypeRef = useRef(filterType)
   const navigate = useNavigate()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isRestoring, setIsRestoring] = useState(true)
@@ -139,6 +147,11 @@ export default function ArticlesList() {
   } else if (refreshProcess.total > 0) {
     activeProcess = refreshProcess
   }
+
+  useEffect(() => {
+    filterTypeRef.current = filterType
+  }, [filterType])
+
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
@@ -153,9 +166,10 @@ export default function ArticlesList() {
     const result = await feedSyncService.syncFeeds((total, completed) => {
       setRefreshProcess({ total, completed })
     })
+
     await getArticles({
       articleService,
-      ignoreRead: filterType === "unread",
+      ignoreRead: filterTypeRef.current === "unread",
       append: false,
     })
     //TODO: Show sync result in UI instead of console
@@ -187,7 +201,7 @@ export default function ArticlesList() {
     setIsLoadingMore(true)
     await getArticles({
       articleService,
-      ignoreRead: filterType === "unread",
+      ignoreRead: filterTypeRef.current === "unread",
       cursor:
         articles && articles.length > 0
           ? {

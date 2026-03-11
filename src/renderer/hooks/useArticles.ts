@@ -145,10 +145,14 @@ export default function useArticles(): UseArticlesReturn {
         append: false,
       })
       const syncResult = await feedSyncService.syncFeeds(setSyncProcess)
-      setFetchResult(syncResult)
+      setFetchResult(syncResult.data)
+
+      const latestFilterTypeResult = await dataStorage.getFilterType()
+      const latestIgnoreRead = latestFilterTypeResult.data === "unread"
+
       await getArticles({
         articleService,
-        ignoreRead,
+        ignoreRead: latestIgnoreRead,
         replace: true,
         append: false,
       })
