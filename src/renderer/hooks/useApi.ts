@@ -4,8 +4,31 @@ export const useArticleService = () => {
 export const useFeedService = () => {
   return window.ipcBridge.feedService
 }
+
+const feedSyncServiceWithScopedProgress = {
+  ...window.ipcBridge.feedSyncService,
+  syncFeeds: async (callBack?: (total: number, completed: number) => void) => {
+    const syncId = crypto.randomUUID()
+    let disposeProgressListener: (() => void) | undefined
+    if (callBack) {
+      disposeProgressListener =
+        window.ipcBridge.feedSyncService.onFeedSyncProgress(
+          (eventSyncId, total, completed) => {
+            if (eventSyncId !== syncId) {
+              return
+            }
+            callBack(total, completed)
+          },
+        )
+    }
+    return window.ipcBridge.feedSyncService
+      .syncFeeds(syncId)
+      .finally(() => disposeProgressListener?.())
+  },
+}
+
 export const useFeedSyncService = () => {
-  return window.ipcBridge.feedSyncService
+  return feedSyncServiceWithScopedProgress
 }
 export const useFeedParser = () => {
   return window.ipcBridge.feedParser

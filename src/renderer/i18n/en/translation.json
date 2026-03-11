@@ -18,9 +18,11 @@
   "unreadArticles": "Unread Articles",
   "filterArticles": "Filter Articles",
   "markAllRead": "Mark All Read",
-  "areYouSure": " Are you sure?",
+  "areYouSure": "Are you sure?",
   "markAllAsReadConfirmation": "This will mark all articles as read.",
   "cancel": "Cancel",
   "confirm": "Confirm",
-  "noNewArticles": "No new articles."
+  "noNewArticles": "No new articles.",
+  "fetchingFeedsTitle": "Fetching Feeds",
+  "fetchingFeeds": "Fetching feeds: {{completed}}/{{total}} completed ({{percent}}%)"
 }

@@ -40,7 +40,24 @@ const api = {
       ipcRenderer.invoke("feedService", "updateFeed", url, title),
   },
   feedSyncService: {
-    syncFeeds: () => ipcRenderer.invoke("feedSyncService", "syncFeeds"),
+    syncFeeds: (syncId: string) =>
+      ipcRenderer.invoke("feedSyncService", "syncFeeds", syncId),
+    onFeedSyncProgress: (
+      callback: (syncId: string, total: number, completed: number) => void,
+    ) => {
+      const listener = (
+        _event: unknown,
+        syncId: string,
+        total: number,
+        completed: number,
+      ) => {
+        callback(syncId, total, completed)
+      }
+      ipcRenderer.on("feedSyncProgress", listener)
+      return () => {
+        ipcRenderer.removeListener("feedSyncProgress", listener)
+      }
+    },
   },
   feedParser: (url: string, timeout?: number) =>
     ipcRenderer.invoke("feedParser", url, timeout),

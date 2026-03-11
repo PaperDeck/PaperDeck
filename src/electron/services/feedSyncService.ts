@@ -16,10 +16,14 @@ export interface SyncResult {
 }
 
 class FeedSyncService {
-  async syncFeeds(): Promise<SyncResult> {
+  async syncFeeds(
+    syncId?: string,
+    callBack?: (syncId: string, total: number, completed: number) => void,
+  ): Promise<SyncResult> {
     const feeds = await feedService.getFeeds()
     const allErrors: ParserError[] = []
     let errorCount = 0
+    let completedCount = 0
     const syncPromises = feeds.map((feed) =>
       limit(async () => {
         try {
@@ -34,6 +38,8 @@ class FeedSyncService {
           }
           errorCount++
         }
+        completedCount++
+        callBack?.(syncId ?? "", feeds.length, completedCount)
       }),
     )
     await Promise.all(syncPromises)

@@ -1,7 +1,14 @@
-import { useState, useCallback, memo, useLayoutEffect, useRef } from "react"
+import {
+  useState,
+  useCallback,
+  memo,
+  useLayoutEffect,
+  useRef,
+  useEffect,
+} from "react"
 import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
-import { RefreshCcw, ListFilter, Check, MailCheck } from "lucide-react"
+import { RefreshCcw, ListFilter, Check, MailCheck, Rocket } from "lucide-react"
 import IconButton from "@/renderer/components/IconButton"
 import {
   Tooltip,
@@ -35,6 +42,11 @@ import {
 } from "@/renderer/components/ui/alert-dialog"
 import { useOnInView } from "react-intersection-observer"
 import { useVirtualizer } from "@tanstack/react-virtual"
+import {
+  Alert,
+  AlertTitle,
+  AlertDescription,
+} from "@/renderer/components/ui/alert"
 
 const ARTICLES_PAGE_INDEX_STORAGE_KEY = "articles_page"
 
@@ -112,12 +124,34 @@ export default function ArticlesList() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { t } = useTranslation()
-  const { articles, getArticles, fetchResult, setArticles, hasMore } =
-    useArticles()
+  const {
+    articles,
+    getArticles,
+    fetchResult,
+    setArticles,
+    hasMore,
+    syncProcess,
+  } = useArticles()
   const { setFilterType, filterType } = useDataStorage()
+  const filterTypeRef = useRef(filterType)
   const navigate = useNavigate()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isRestoring, setIsRestoring] = useState(true)
+  const [refreshProcess, setRefreshProcess] = useState({
+    total: 0,
+    completed: 0,
+  })
+  let activeProcess = null
+  if (syncProcess.total > 0 && !fetchResult) {
+    activeProcess = syncProcess
+  } else if (refreshProcess.total > 0) {
+    activeProcess = refreshProcess
+  }
+
+  useEffect(() => {
+    filterTypeRef.current = filterType
+  }, [filterType])
+
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
     if (result.success) {
@@ -128,16 +162,21 @@ export default function ArticlesList() {
   }
   const handleRefresh = async () => {
     setIsLoading(true)
-    const result = await feedSyncService.syncFeeds()
+    setRefreshProcess({ total: 0, completed: 0 })
+    const result = await feedSyncService.syncFeeds((total, completed) => {
+      setRefreshProcess({ total, completed })
+    })
+
     await getArticles({
       articleService,
-      ignoreRead: filterType === "unread",
+      ignoreRead: filterTypeRef.current === "unread",
       append: false,
     })
     //TODO: Show sync result in UI instead of console
     console.log(
       `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
     )
+    setRefreshProcess({ total: 0, completed: 0 })
     setIsLoading(false)
   }
   const handleArticleClick = useCallback(
@@ -162,7 +201,7 @@ export default function ArticlesList() {
     setIsLoadingMore(true)
     await getArticles({
       articleService,
-      ignoreRead: filterType === "unread",
+      ignoreRead: filterTypeRef.current === "unread",
       cursor:
         articles && articles.length > 0
           ? {
@@ -226,7 +265,7 @@ export default function ArticlesList() {
           <TooltipContent>{t("refreshFeeds")}</TooltipContent>
         </Tooltip>
       </div>
-      <div className="flex gap-1 w-md mb-1 ml-5">
+      <div className="flex gap-1 w-md mb-1">
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -299,13 +338,33 @@ export default function ArticlesList() {
         </AlertDialog>
       </div>
       <div className="flex items-center flex-col w-md mb-4">
+        {activeProcess && activeProcess.total > 0 && (
+          <>
+            {activeProcess.total > 0 && (
+              <Alert className="my-2">
+                <Rocket />
+                <AlertTitle>{t("fetchingFeedsTitle")}</AlertTitle>
+                <AlertDescription>
+                  {t("fetchingFeeds", {
+                    completed: activeProcess.completed,
+                    total: activeProcess.total,
+                    percent: Math.round(
+                      (activeProcess.completed / activeProcess.total) * 100,
+                    ),
+                  })}
+                </AlertDescription>
+              </Alert>
+            )}
+          </>
+        )}
         {articles && articles.length === 0 && (
           <>
-            {fetchResult && fetchResult.allFeeds === 0 ? (
+            {fetchResult && fetchResult.allFeeds === 0 && (
               <p className="text-md text-gray-500 dark:text-gray-400">
                 {t("tryAddingSomeFeeds")}
               </p>
-            ) : (
+            )}
+            {fetchResult && fetchResult.allFeeds > 0 && (
               <p className="text-md text-gray-500 dark:text-gray-400">
                 {t("noNewArticles")}
               </p>
@@ -345,7 +404,7 @@ export default function ArticlesList() {
         {!isLoadingMore && !isRestoring && hasMore && (
           <div ref={inViewRef}></div>
         )}
-        {(isLoadingMore || !fetchResult) && (
+        {isLoadingMore && (
           <div className="flex flex-col w-full gap-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div

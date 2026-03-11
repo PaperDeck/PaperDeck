@@ -70,7 +70,13 @@ app.whenReady().then(() => {
   }
   registerService("articleService", articleService)
   registerService("feedService", feedService)
-  registerService("feedSyncService", feedSyncService)
+  registerService("feedSyncService", feedSyncService, {
+    callbackBridges: {
+      syncFeeds: {
+        eventChannel: "feedSyncProgress",
+      },
+    },
+  })
   registerFunction("feedParser", feedParser)
   registerFunction("openInBrowser", openInBrowser)
   registerFunction("fetchImage", fetchImage)
@@ -137,12 +143,26 @@ function wrapHandler<T>(
   }
 }
 
-function registerService<T>(channelName: string, service: T) {
+type CallbackBridge = {
+  eventChannel: string
+}
+
+type RegisterServiceOptions<T> = {
+  callbackBridges?: Partial<Record<Extract<keyof T, string>, CallbackBridge>>
+}
+
+function registerService<T>(
+  channelName: string,
+  service: T,
+  options?: RegisterServiceOptions<T>,
+) {
   ipcMain.handle(
     channelName,
     wrapHandler(
       async (
-        _event: unknown,
+        event: {
+          sender: { send: (channel: string, ...args: unknown[]) => void }
+        },
         methodName: keyof T,
         ...args: Array<unknown>
       ): Promise<unknown> => {
@@ -150,6 +170,17 @@ function registerService<T>(channelName: string, service: T) {
         if (typeof method !== "function") {
           throw new Error(`Method ${String(methodName)} not found on service`)
         }
+
+        const methodNameStr = String(methodName) as Extract<keyof T, string>
+        const callbackBridge = options?.callbackBridges?.[methodNameStr]
+
+        if (callbackBridge) {
+          const bridgedCallback = (...callbackArgs: Array<unknown>) => {
+            event.sender.send(callbackBridge.eventChannel, ...callbackArgs)
+          }
+          return await method.apply(service, [...args, bridgedCallback])
+        }
+
         return await method.apply(service, args)
       },
     ),
