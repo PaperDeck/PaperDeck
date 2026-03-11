@@ -30,6 +30,11 @@ interface ArticlesState {
   hasMore: boolean
   setFetchResult: (result: SyncResult) => void
   fetchResult: SyncResult | null
+  syncProcess: {
+    total: number
+    completed: number
+  }
+  setSyncProcess: (total: number, completed: number) => void
 }
 
 const useArticlesStore = create<ArticlesState>((set) => ({
@@ -98,6 +103,12 @@ const useArticlesStore = create<ArticlesState>((set) => ({
   },
   setFetchResult: (result) => set({ fetchResult: result }),
   fetchResult: null,
+  syncProcess: {
+    total: 0,
+    completed: 0,
+  },
+  setSyncProcess: (total, completed) =>
+    set({ syncProcess: { total, completed } }),
 }))
 
 interface UseArticlesReturn extends ArticlesState {
@@ -116,6 +127,8 @@ export default function useArticles(): UseArticlesReturn {
     hasMore,
     setFetchResult,
     fetchResult,
+    setSyncProcess,
+    syncProcess,
   } = useArticlesStore()
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
@@ -131,10 +144,7 @@ export default function useArticles(): UseArticlesReturn {
         replace: true,
         append: false,
       })
-      function feedSyncProcess(total: number, completed: number) {
-        console.log(`Feed sync progress: ${completed}/${total}`)
-      }
-      const syncResult = await feedSyncService.syncFeeds(feedSyncProcess)
+      const syncResult = await feedSyncService.syncFeeds(setSyncProcess)
       setFetchResult(syncResult)
       await getArticles({
         articleService,
@@ -156,6 +166,7 @@ export default function useArticles(): UseArticlesReturn {
     getArticles,
     setHasInitialized,
     setFetchResult,
+    setSyncProcess,
   ])
 
   return {
@@ -168,5 +179,7 @@ export default function useArticles(): UseArticlesReturn {
     fetchResult,
     hasMore,
     setFetchResult,
+    syncProcess,
+    setSyncProcess,
   }
 }
