@@ -1,7 +1,12 @@
 import { useFetchImage } from "@/renderer/hooks/useApi"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { cn } from "@/renderer/lib/utils"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
+import pLimit from "p-limit"
+import { useOnInView } from "react-intersection-observer"
+
+const DEFAULT_IMAGE_CONCURRENCY_LIMIT = 5
+const imageFetchLimit = pLimit(DEFAULT_IMAGE_CONCURRENCY_LIMIT)
 
 interface ArticleImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string
@@ -14,29 +19,42 @@ export default function ArticleImage({
   className,
   ...props
 }: ArticleImageProps) {
-  const [displaySrc, setDisplaySrc] = useState<string | null>(null)
+  const [loadedImage, setLoadedImage] = useState<{
+    source: string
+    displaySrc: string
+  } | null>(null)
   const fetchImage = useFetchImage()
-  useEffect(() => {
-    const loadImage = async () => {
-      try {
-        const result = await fetchImage(src)
-        if (!result.success) {
-          console.error("Failed to fetch image:", result.error)
-          return
-        }
-        setDisplaySrc(result.data)
-      } catch (error) {
-        console.error("Failed to load image:", error)
+
+  const inViewRef = useOnInView(
+    async () => {
+      const result = await imageFetchLimit(() => fetchImage(src))
+
+      if (!result.success) {
+        console.error("Failed to fetch image:", result.error)
+        return
       }
-    }
-    loadImage()
-  }, [src, fetchImage])
-  if (!displaySrc) {
-    return <Skeleton className={cn("w-full h-48 rounded my-3", className)} />
+      setLoadedImage({
+        source: src,
+        displaySrc: result.data,
+      })
+    },
+    {
+      triggerOnce: true,
+    },
+  )
+
+  if (!loadedImage || loadedImage.source !== src) {
+    return (
+      <Skeleton
+        className={cn("w-full h-48 rounded my-3", className)}
+        ref={inViewRef}
+      />
+    )
   }
+
   return (
     <img
-      src={displaySrc}
+      src={loadedImage.displaySrc}
       alt={alt || ""}
       className={cn("max-w-full rounded my-3", className)}
       {...props}
