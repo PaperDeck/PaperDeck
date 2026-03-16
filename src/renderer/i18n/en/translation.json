@@ -24,5 +24,7 @@
   "confirm": "Confirm",
   "noNewArticles": "No new articles.",
   "fetchingFeedsTitle": "Fetching Feeds",
-  "fetchingFeeds": "Fetching feeds: {{completed}}/{{total}} completed ({{percent}}%)"
+  "fetchingFeeds": "Fetching feeds: {{completed}}/{{total}} completed ({{percent}}%)",
+  "reloadImage": "Reload Image",
+  "failedToLoadImage": "Failed to load image"
 }
