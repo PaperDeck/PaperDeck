@@ -256,6 +256,9 @@ export default function Article() {
                 ) {
                   return <Blockquote>{getTextFromNode(domNode)}</Blockquote>
                 }
+                if (domNode.type === "tag" && domNode.tagName === "svg") {
+                  return <div className="my-1"></div>
+                }
               },
             })}
           </div>
