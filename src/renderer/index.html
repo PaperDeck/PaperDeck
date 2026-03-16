@@ -10,14 +10,15 @@
     script-src 'self' 'wasm-unsafe-eval' http://localhost:*;
     connect-src 'self' http://localhost:* ws://localhost:*;
     style-src 'self' 'unsafe-inline' http://localhost:*;
-    img-src 'self' data: http://localhost:*;"
+    img-src 'self' data: http://localhost:*;
+    media-src 'self' http: https:;"
     />
     <!-- Load React DevTools from the local dev server. This runs only in development. -->
     <script src="http://localhost:8097"></script>
     <% }else{ %>
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' http: https:;"
     />
     <% } %>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

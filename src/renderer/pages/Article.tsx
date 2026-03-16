@@ -61,6 +61,27 @@ function handleImage(domNode: DOMNode, article: ArticleWithFeed) {
   }
 }
 
+function resolveResourceUrl(
+  src: string | undefined,
+  article: ArticleWithFeed,
+): string | undefined {
+  if (!src) return
+
+  if (src.startsWith("data:") || src.startsWith("blob:")) {
+    return src
+  }
+
+  try {
+    const resolvedUrl = new URL(src, article.feed.url)
+    if (resolvedUrl.protocol === "http:" || resolvedUrl.protocol === "https:") {
+      return resolvedUrl.href
+    }
+    return
+  } catch {
+    return
+  }
+}
+
 function getTextFromNode(
   node: DOMNode | ChildNode,
   opts: { shouldRemoveHeadingAnchor?: boolean } = {},
@@ -258,6 +279,86 @@ export default function Article() {
                 }
                 if (domNode.type === "tag" && domNode.tagName === "svg") {
                   return <div className="my-1"></div>
+                }
+                if (domNode.type === "tag" && domNode.tagName === "audio") {
+                  const mediaSrc = resolveResourceUrl(
+                    domNode.attribs.src,
+                    article,
+                  )
+                  return (
+                    <audio
+                      controls={domNode.attribs.controls !== "false"}
+                      autoPlay={domNode.attribs.autoplay !== undefined}
+                      muted={domNode.attribs.muted !== undefined}
+                      loop={domNode.attribs.loop !== undefined}
+                      preload={domNode.attribs.preload || "metadata"}
+                      src={mediaSrc}
+                      className="w-full my-3"
+                    >
+                      {domNode.children
+                        ?.filter(
+                          (child) =>
+                            child.type === "tag" && child.name === "source",
+                        )
+                        .map((child, i) => {
+                          if (child.type !== "tag") return null
+                          const childSrc = resolveResourceUrl(
+                            child.attribs.src,
+                            article,
+                          )
+                          return (
+                            <source
+                              key={i}
+                              src={childSrc}
+                              type={child.attribs.type}
+                            />
+                          )
+                        })}
+                    </audio>
+                  )
+                }
+                if (domNode.type === "tag" && domNode.tagName === "video") {
+                  const mediaSrc = resolveResourceUrl(
+                    domNode.attribs.src,
+                    article,
+                  )
+                  const posterSrc = resolveResourceUrl(
+                    domNode.attribs.poster,
+                    article,
+                  )
+                  return (
+                    <video
+                      controls={domNode.attribs.controls !== "false"}
+                      autoPlay={domNode.attribs.autoplay !== undefined}
+                      muted={domNode.attribs.muted !== undefined}
+                      loop={domNode.attribs.loop !== undefined}
+                      preload={domNode.attribs.preload || "metadata"}
+                      playsInline={domNode.attribs.playsinline !== undefined}
+                      poster={posterSrc}
+                      src={mediaSrc}
+                      className="w-full my-3 rounded-md"
+                    >
+                      {domNode.children
+                        ?.filter(
+                          (child) =>
+                            child.type === "tag" && child.name === "source",
+                        )
+                        .map((child, i) => {
+                          if (child.type !== "tag") return null
+                          const childSrc = resolveResourceUrl(
+                            child.attribs.src,
+                            article,
+                          )
+                          return (
+                            <source
+                              key={i}
+                              src={childSrc}
+                              type={child.attribs.type}
+                            />
+                          )
+                        })}
+                    </video>
+                  )
                 }
               },
             })}
