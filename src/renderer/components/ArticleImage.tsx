@@ -56,42 +56,45 @@ export default function ArticleImage({
     loadImage()
   }
 
-  if (hasError) {
-    return (
-      <div
-        className={cn(
-          "w-full rounded h-48 border flex flex-col items-center justify-center text-gray-500 dark:text-gray-400",
-          className,
-        )}
-      >
-        <TriangleAlert size={24} className="mb-2" />
-        <p className="mb-3">{t("failedToLoadImage")}</p>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <IconButton onClick={handleReloadImage}>
-              <RefreshCcw size={24} />
-            </IconButton>
-          </TooltipTrigger>
-          <TooltipContent>{t("reloadImage")}</TooltipContent>
-        </Tooltip>
-      </div>
-    )
-  }
-  if (!loadedImage || loadedImage.source !== src) {
-    return (
-      <Skeleton
-        className={cn("w-full h-48 rounded my-3", className)}
-        ref={inViewRef}
-      />
-    )
-  }
-
   return (
-    <img
-      src={loadedImage.displaySrc}
-      alt={alt || ""}
-      className={cn("max-w-full rounded my-3", className)}
-      {...props}
-    ></img>
+    <>
+      {hasError ? (
+        <div
+          className={cn(
+            "w-full rounded h-48 border flex flex-col items-center justify-center text-gray-500 dark:text-gray-400",
+            className,
+          )}
+        >
+          <TriangleAlert size={24} className="mb-2" />
+          <p className="mb-3">{t("failedToLoadImage")}</p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton onClick={handleReloadImage}>
+                <RefreshCcw size={24} />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("reloadImage")}</TooltipContent>
+          </Tooltip>
+        </div>
+      ) : !loadedImage || loadedImage.source !== src ? (
+        <Skeleton
+          className={cn("w-full h-48 rounded my-3", className)}
+          ref={inViewRef}
+        />
+      ) : (
+        <img
+          src={loadedImage.displaySrc}
+          className={cn("max-w-full rounded mt-3", className)}
+          alt={alt}
+          onError={() => setHasError(true)}
+          {...props}
+        />
+      )}
+      {alt && (
+        <p className="text-sm text-center m-3 text-gray-500 dark:text-gray-400">
+          {alt}
+        </p>
+      )}
+    </>
   )
 }
