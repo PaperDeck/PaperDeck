@@ -42,6 +42,106 @@ function getProtocolFromUrl(url: string): string {
   }
 }
 
+const LANGUAGE_ALIAS_MAP: Record<string, string> = {
+  "c++": "cpp",
+  csharp: "c#",
+  cs: "c#",
+  golang: "go",
+  js: "javascript",
+  jsx: "jsx",
+  md: "markdown",
+  py: "python",
+  rb: "ruby",
+  rs: "rust",
+  sh: "bash",
+  shell: "bash",
+  ts: "typescript",
+  yml: "yaml",
+}
+
+function normalizeLanguageToken(token: string): string | undefined {
+  const normalized = token
+    .trim()
+    .toLowerCase()
+    .replace(/[{}()[\],]/g, "")
+    .replace(/^\.+/, "")
+
+  if (!normalized) return
+  return LANGUAGE_ALIAS_MAP[normalized] ?? normalized
+}
+
+function getLanguageFromClassString(
+  classString: string | undefined,
+): string | undefined {
+  if (!classString) return
+
+  const classNames = classString
+    .split(/\s+/)
+    .map((name) => name.trim())
+    .filter(Boolean)
+
+  for (const className of classNames) {
+    const normalizedClass = className.toLowerCase().trim()
+
+    const matchedPrefix = normalizedClass.match(
+      /^(?:language|lang|grammar|syntax)-([a-z0-9_+#.-]+)$/,
+    )
+    if (matchedPrefix) {
+      const normalized = normalizeLanguageToken(matchedPrefix[1])
+      if (normalized) return normalized
+    }
+
+    const matchedHighlight = normalizedClass.match(/^hljs-([a-z0-9_+#.-]+)$/)
+    if (matchedHighlight) {
+      const normalized = normalizeLanguageToken(matchedHighlight[1])
+      if (normalized) return normalized
+    }
+
+    const matchedPrettyPrint = normalizedClass.match(/^lang-([a-z0-9_+#.-]+)$/)
+    if (matchedPrettyPrint) {
+      const normalized = normalizeLanguageToken(matchedPrettyPrint[1])
+      if (normalized) return normalized
+    }
+  }
+
+  const brushMatch = classString.match(/brush\s*:\s*([a-z0-9_+#.-]+)/i)
+  if (brushMatch) {
+    return normalizeLanguageToken(brushMatch[1])
+  }
+
+  return
+}
+
+function detectCodeLanguage(domNode: DOMNode): string {
+  if (domNode.type !== "tag") return "plaintext"
+
+  const ownClass = domNode.attribs.class
+  const ownDataLanguage =
+    domNode.attribs["data-language"] ?? domNode.attribs["data-lang"]
+  const ownLanguage = domNode.attribs.language
+
+  const ownDetected =
+    getLanguageFromClassString(ownClass) ??
+    normalizeLanguageToken(ownDataLanguage ?? "") ??
+    normalizeLanguageToken(ownLanguage ?? "")
+  if (ownDetected) return ownDetected
+
+  const firstChild = domNode.children?.[0]
+  if (firstChild?.type === "tag") {
+    const childDetected =
+      getLanguageFromClassString(firstChild.attribs.class) ??
+      normalizeLanguageToken(
+        firstChild.attribs["data-language"] ??
+          firstChild.attribs["data-lang"] ??
+          "",
+      ) ??
+      normalizeLanguageToken(firstChild.attribs.language ?? "")
+    if (childDetected) return childDetected
+  }
+
+  return "plaintext"
+}
+
 function handleImage(domNode: DOMNode, article: ArticleWithFeed) {
   if (domNode.type !== "tag" || domNode.tagName !== "img") {
     return
@@ -252,8 +352,7 @@ export default function Article() {
                   domNode.children[0].tagName === "code"
                 ) {
                   const codeText = getTextFromNode(domNode)
-                  const language =
-                    domNode.attribs.class?.split("language-")[1] || "plaintext"
+                  const language = detectCodeLanguage(domNode)
                   return (
                     <CodeBlock
                       code={codeText}
