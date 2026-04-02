@@ -365,7 +365,7 @@ export default function Article() {
                 if (domNode.type === "tag" && domNode.tagName === "code") {
                   const codeText = getTextFromNode(domNode)
                   return (
-                    <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">
+                    <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded break-all">
                       {codeText}
                     </code>
                   )
