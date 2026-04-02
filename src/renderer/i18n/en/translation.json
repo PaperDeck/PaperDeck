@@ -26,5 +26,7 @@
   "fetchingFeedsTitle": "Fetching Feeds",
   "fetchingFeeds": "Fetching feeds: {{completed}}/{{total}} completed ({{percent}}%)",
   "reloadImage": "Reload Image",
-  "failedToLoadImage": "Failed to load image"
+  "failedToLoadImage": "Failed to load image",
+  "codeBlockCopy": "Copy",
+  "codeBlockCopyDone": "Copied"
 }
