@@ -1,11 +1,4 @@
-import {
-  useState,
-  useCallback,
-  memo,
-  useLayoutEffect,
-  useRef,
-  useEffect,
-} from "react"
+import { useState, useCallback, memo, useLayoutEffect, useRef } from "react"
 import { useArticleService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import { RefreshCcw, ListFilter, Check, MailCheck, Rocket } from "lucide-react"
@@ -133,15 +126,10 @@ export default function ArticlesList() {
     syncProcess,
   } = useArticles()
   const { setFilterType, filterType } = useDataStorage()
-  const filterTypeRef = useRef(filterType)
   const navigate = useNavigate()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isRestoring, setIsRestoring] = useState(true)
   const activeProcess = syncProcess.total > 0 ? syncProcess : null
-
-  useEffect(() => {
-    filterTypeRef.current = filterType
-  }, [filterType])
 
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
@@ -178,12 +166,12 @@ export default function ArticlesList() {
       replace: true,
     })
   }
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
     await getArticles({
       articleService,
-      ignoreRead: filterTypeRef.current === "unread",
+      ignoreRead: filterType === "unread",
       cursor:
         articles && articles.length > 0
           ? {
@@ -193,7 +181,14 @@ export default function ArticlesList() {
           : undefined,
     })
     setIsLoadingMore(false)
-  }
+  }, [
+    isLoadingMore,
+    hasMore,
+    getArticles,
+    articleService,
+    filterType,
+    articles,
+  ])
   const fromNow = useRelativeTime()
   const inViewRef = useOnInView(async (inView) => {
     if (inView) {
