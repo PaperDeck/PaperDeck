@@ -257,12 +257,14 @@ export default function Article() {
   return (
     <div className="flex flex-col items-center mt-10">
       <div className="flex flex-col w-xl px-5">
-        <button
-          onClick={() => navigate("/articles")}
-          className="self-start mb-5 text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-        >
-          &larr; {t("back")}
-        </button>
+        <div className="sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3">
+          <button
+            onClick={() => navigate("/articles")}
+            className="self-start text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
+          >
+            &larr; {t("back")}
+          </button>
+        </div>
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="flex items-center gap-3">
           {article.pubDate && (
