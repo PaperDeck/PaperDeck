@@ -5,10 +5,17 @@ import {
   useDataStorage,
   useFeedSyncService,
 } from "@/renderer/hooks/useApi"
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import type { IpcBridge } from "@/electron/preload"
 import type { SyncResult } from "@/electron/services/feedSyncService"
 import { useRef } from "react"
+
+interface FetchArticlesOptions {
+  syncFeeds?: boolean
+  preloadBeforeSync?: boolean
+  replace?: boolean
+  append?: boolean
+}
 
 interface ArticlesState {
   articles: ArticleWithFeed[] | null
@@ -113,6 +120,7 @@ const useArticlesStore = create<ArticlesState>((set) => ({
 
 interface UseArticlesReturn extends ArticlesState {
   fetchResult: SyncResult | null
+  fetchArticles: (options?: FetchArticlesOptions) => Promise<void>
 }
 
 export default function useArticles(): UseArticlesReturn {
@@ -133,19 +141,33 @@ export default function useArticles(): UseArticlesReturn {
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
-  useEffect(() => {
-    const initializeArticles = async () => {
+
+  const fetchArticles = useCallback(
+    async (options: FetchArticlesOptions = {}) => {
+      const {
+        syncFeeds = false,
+        preloadBeforeSync = false,
+        replace = true,
+        append = false,
+      } = options
+
       const filterTypeResult = await dataStorage.getFilterType()
       const ignoreRead = filterTypeResult.data === "unread"
 
-      await getArticles({
-        articleService,
-        ignoreRead,
-        replace: true,
-        append: false,
-      })
-      const syncResult = await feedSyncService.syncFeeds(setSyncProcess)
-      setFetchResult(syncResult.data)
+      if (preloadBeforeSync) {
+        await getArticles({
+          articleService,
+          ignoreRead,
+          replace,
+          append,
+        })
+      }
+
+      if (syncFeeds) {
+        setSyncProcess(0, 0)
+        const syncResult = await feedSyncService.syncFeeds(setSyncProcess)
+        setFetchResult(syncResult.data)
+      }
 
       const latestFilterTypeResult = await dataStorage.getFilterType()
       const latestIgnoreRead = latestFilterTypeResult.data === "unread"
@@ -153,6 +175,29 @@ export default function useArticles(): UseArticlesReturn {
       await getArticles({
         articleService,
         ignoreRead: latestIgnoreRead,
+        replace,
+        append,
+      })
+
+      if (syncFeeds) {
+        setSyncProcess(0, 0)
+      }
+    },
+    [
+      articleService,
+      dataStorage,
+      feedSyncService,
+      getArticles,
+      setFetchResult,
+      setSyncProcess,
+    ],
+  )
+
+  useEffect(() => {
+    const initializeArticles = async () => {
+      await fetchArticles({
+        syncFeeds: true,
+        preloadBeforeSync: true,
         replace: true,
         append: false,
       })
@@ -171,6 +216,7 @@ export default function useArticles(): UseArticlesReturn {
     setHasInitialized,
     setFetchResult,
     setSyncProcess,
+    fetchArticles,
   ])
 
   return {
@@ -185,5 +231,6 @@ export default function useArticles(): UseArticlesReturn {
     setFetchResult,
     syncProcess,
     setSyncProcess,
+    fetchArticles,
   }
 }
