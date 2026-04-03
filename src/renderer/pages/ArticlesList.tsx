@@ -1,12 +1,5 @@
-import {
-  useState,
-  useCallback,
-  memo,
-  useLayoutEffect,
-  useRef,
-  useEffect,
-} from "react"
-import { useArticleService, useFeedSyncService } from "@/renderer/hooks/useApi"
+import { useState, useCallback, memo, useLayoutEffect, useRef } from "react"
+import { useArticleService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
 import { RefreshCcw, ListFilter, Check, MailCheck, Rocket } from "lucide-react"
 import IconButton from "@/renderer/components/IconButton"
@@ -120,37 +113,23 @@ const ArticleRow = memo(
 
 export default function ArticlesList() {
   const articleService = useArticleService()
-  const feedSyncService = useFeedSyncService()
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { t } = useTranslation()
   const {
     articles,
     getArticles,
+    fetchArticles,
     fetchResult,
     setArticles,
     hasMore,
     syncProcess,
   } = useArticles()
   const { setFilterType, filterType } = useDataStorage()
-  const filterTypeRef = useRef(filterType)
   const navigate = useNavigate()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isRestoring, setIsRestoring] = useState(true)
-  const [refreshProcess, setRefreshProcess] = useState({
-    total: 0,
-    completed: 0,
-  })
-  let activeProcess = null
-  if (syncProcess.total > 0 && !fetchResult) {
-    activeProcess = syncProcess
-  } else if (refreshProcess.total > 0) {
-    activeProcess = refreshProcess
-  }
-
-  useEffect(() => {
-    filterTypeRef.current = filterType
-  }, [filterType])
+  const activeProcess = syncProcess.total > 0 ? syncProcess : null
 
   const handleMarkAllAsRead = async () => {
     const result = await articleService.markAllArticlesAsRead()
@@ -162,21 +141,12 @@ export default function ArticlesList() {
   }
   const handleRefresh = async () => {
     setIsLoading(true)
-    setRefreshProcess({ total: 0, completed: 0 })
-    const result = await feedSyncService.syncFeeds((total, completed) => {
-      setRefreshProcess({ total, completed })
-    })
-
-    await getArticles({
-      articleService,
-      ignoreRead: filterTypeRef.current === "unread",
+    await fetchArticles({
+      syncFeeds: true,
+      preloadBeforeSync: false,
+      replace: true,
       append: false,
     })
-    //TODO: Show sync result in UI instead of console
-    console.log(
-      `Sync result: ${result.data.successCount} feeds synced successfully, ${result.data.errorCount} feeds failed to sync.`,
-    )
-    setRefreshProcess({ total: 0, completed: 0 })
     setIsLoading(false)
   }
   const handleArticleClick = useCallback(
@@ -196,12 +166,12 @@ export default function ArticlesList() {
       replace: true,
     })
   }
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) return
     setIsLoadingMore(true)
     await getArticles({
       articleService,
-      ignoreRead: filterTypeRef.current === "unread",
+      ignoreRead: filterType === "unread",
       cursor:
         articles && articles.length > 0
           ? {
@@ -211,7 +181,14 @@ export default function ArticlesList() {
           : undefined,
     })
     setIsLoadingMore(false)
-  }
+  }, [
+    isLoadingMore,
+    hasMore,
+    getArticles,
+    articleService,
+    filterType,
+    articles,
+  ])
   const fromNow = useRelativeTime()
   const inViewRef = useOnInView(async (inView) => {
     if (inView) {
