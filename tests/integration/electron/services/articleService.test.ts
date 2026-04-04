@@ -70,6 +70,15 @@ describe.sequential("ArticleService", () => {
     expect(updated.id).toBe(article.guid)
   })
 
+  it("should mark article as unread", async () => {
+    await articleService.saveArticles(feedUrl, testArticles)
+    const article = testArticles[0]
+    await articleService.markArticleAsRead(article.guid)
+    const updated = await articleService.markArticleAsUnread(article.guid)
+    expect(updated.isRead).toBe(false)
+    expect(updated.id).toBe(article.guid)
+  })
+
   it("should get all articles with optional feed data", async () => {
     await articleService.saveArticles(feedUrl, testArticles)
     const articlesWithoutFeed = (await articleService.getAll()).articles

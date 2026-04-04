@@ -13,7 +13,7 @@ import { useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
 import Blockquote from "@/renderer/components/Blockquote"
 import type { ArticleWithFeed } from "@/shared/types/article"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ArrowLeft,
   EllipsisVertical,
@@ -26,6 +26,13 @@ import {
   DropdownMenu,
   DropdownMenuItem,
 } from "@/renderer/components/ui/dropdown-menu"
+import { BellDot } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/renderer/components/ui/tooltip"
+import toast from "react-hot-toast"
 
 function isUrl(str: string): boolean {
   try {
@@ -217,14 +224,15 @@ function getTextFromNode(
 export default function Article() {
   const { id } = useParams<{ id: string }>()
   const decodedId = decodeURIComponent(id || "")
-  const { articles, markArticleAsRead } = useArticles()
+  const { articles, markArticleAsRead, markArticleAsUnread } = useArticles()
   const article = articles?.find((a) => a.id === decodedId)
   const openInBrowser = useOpenInBrowser()
   const articleService = useArticleService()
-  const { theme } = useDataStorage()
+  const { theme, filterType } = useDataStorage()
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [articleContent, setArticleContent] = useState<string | null>(null)
+  const markedAsRead = useRef<boolean>(false)
 
   const isDark =
     theme === "dark" ||
@@ -232,7 +240,8 @@ export default function Article() {
       window.matchMedia("(prefers-color-scheme: dark)").matches)
   useEffect(() => {
     const markRead = async () => {
-      if (article && !article.isRead) {
+      if (article && !article.isRead && !markedAsRead.current) {
+        markedAsRead.current = true
         const result = await articleService.markArticleAsRead(article.id)
         if (result.success) {
           await markArticleAsRead(article.id)
@@ -242,7 +251,7 @@ export default function Article() {
       }
     }
     markRead()
-  }, [article, articleService, markArticleAsRead])
+  }, [article, articleService, markArticleAsRead, t])
   useEffect(() => {
     const fetchContent = async () => {
       const result = await articleService.getArticleContentById(decodedId)
@@ -269,6 +278,15 @@ export default function Article() {
 
   const handleBackClick = () => navigate("/articles")
   const handleViewOriginalClick = () => openInBrowser(article.link)
+  const handleMarkAsUnreadClick = async () => {
+    const result = await articleService.markArticleAsUnread(article.id)
+    if (result.success) {
+      await markArticleAsUnread(article.id)
+      toast.success(t("markedAsUnread"))
+    } else {
+      console.error("Failed to mark article as unread:", result.error)
+    }
+  }
 
   return (
     <div className="flex flex-col items-center mt-10">
@@ -281,22 +299,39 @@ export default function Article() {
             <ArrowLeft size={16} />
             {t("back")}
           </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <IconButton className="ml-auto">
-                <EllipsisVertical size={18} />
-              </IconButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-full"
-              onCloseAutoFocus={(e) => e.preventDefault()}
-            >
-              <DropdownMenuItem onClick={handleViewOriginalClick}>
-                <SquareArrowOutUpRight size={16} className="mr-1" />
-                {t("openInBrowser")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex gap-2 ml-auto">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconButton
+                  className={cn(filterType === "all" && "hidden")}
+                  disabled={!article.isRead}
+                  onClick={handleMarkAsUnreadClick}
+                >
+                  <BellDot
+                    size={18}
+                    className={cn(!article.isRead && "opacity-50")}
+                  />
+                </IconButton>
+              </TooltipTrigger>
+              <TooltipContent>{t("markAsUnread")}</TooltipContent>
+            </Tooltip>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <IconButton>
+                  <EllipsisVertical size={18} />
+                </IconButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-full"
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
+                <DropdownMenuItem onClick={handleViewOriginalClick}>
+                  <SquareArrowOutUpRight size={16} className="mr-1" />
+                  {t("openInBrowser")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="flex items-center gap-3">
