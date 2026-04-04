@@ -225,7 +225,10 @@ export default function Article() {
   const { id } = useParams<{ id: string }>()
   const decodedId = decodeURIComponent(id || "")
   const { articles, markArticleAsRead, markArticleAsUnread } = useArticles()
-  const article = articles?.find((a) => a.id === decodedId)
+  const article = useMemo(() => {
+    if (!articles) return null
+    return articles.find((a) => a.id === decodedId) || null
+  }, [articles, decodedId])
   const openInBrowser = useOpenInBrowser()
   const articleService = useArticleService()
   const { theme, filterType } = useDataStorage()
