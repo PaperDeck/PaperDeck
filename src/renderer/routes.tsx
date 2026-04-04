@@ -1,5 +1,5 @@
 import ArticlesList from "@/renderer/pages/ArticlesList"
-import Home from "@/renderer/pages/Home"
+import { Navigate } from "react-router"
 import MainLayout from "@/renderer/layouts/Main"
 import Article from "@/renderer/pages/Article"
 
@@ -10,7 +10,7 @@ const routes = [
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <Navigate to="/articles" replace />,
       },
       {
         path: "articles",
