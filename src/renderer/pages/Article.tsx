@@ -248,7 +248,12 @@ export default function Article() {
 
   useEffect(() => {
     const markRead = async () => {
-      if (article && !article.isRead && !markedAsRead.current) {
+      if (
+        filterType === "unread" &&
+        article &&
+        !article.isRead &&
+        !markedAsRead.current
+      ) {
         try {
           const result = await articleService.markArticleAsRead(article.id)
           if (result.success) {
@@ -265,7 +270,7 @@ export default function Article() {
       markedAsRead.current = true
     }
     markRead()
-  }, [article, articleService, markArticleAsRead, t])
+  }, [article, articleService, filterType, markArticleAsRead, t])
   useEffect(() => {
     const fetchContent = async () => {
       const result = await articleService.getArticleContentById(decodedId)
@@ -317,7 +322,6 @@ export default function Article() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <IconButton
-                  className={cn(filterType === "all" && "hidden")}
                   disabled={!article.isRead}
                   onClick={handleMarkAsUnreadClick}
                 >
