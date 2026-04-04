@@ -241,15 +241,26 @@ export default function Article() {
     theme === "dark" ||
     (theme === "system" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches)
+
+  useEffect(() => {
+    markedAsRead.current = false
+  }, [article?.id])
+
   useEffect(() => {
     const markRead = async () => {
       if (article && !article.isRead && !markedAsRead.current) {
         markedAsRead.current = true
-        const result = await articleService.markArticleAsRead(article.id)
-        if (result.success) {
-          await markArticleAsRead(article.id)
-        } else {
-          console.error("Failed to mark article as read:", result.error)
+        try {
+          const result = await articleService.markArticleAsRead(article.id)
+          if (result.success) {
+            await markArticleAsRead(article.id)
+          } else {
+            markedAsRead.current = false
+            console.error("Failed to mark article as read:", result.error)
+          }
+        } catch (error) {
+          markedAsRead.current = false
+          console.error("Failed to mark article as read:", error)
         }
       }
     }
