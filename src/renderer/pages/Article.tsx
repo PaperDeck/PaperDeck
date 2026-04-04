@@ -249,7 +249,6 @@ export default function Article() {
   useEffect(() => {
     const markRead = async () => {
       if (article && !article.isRead && !markedAsRead.current) {
-        markedAsRead.current = true
         try {
           const result = await articleService.markArticleAsRead(article.id)
           if (result.success) {
@@ -263,6 +262,7 @@ export default function Article() {
           console.error("Failed to mark article as read:", error)
         }
       }
+      markedAsRead.current = true
     }
     markRead()
   }, [article, articleService, markArticleAsRead, t])
