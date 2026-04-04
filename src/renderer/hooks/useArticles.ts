@@ -198,7 +198,7 @@ export default function useArticles(): UseArticlesReturn {
       await fetchArticles({
         syncFeeds: true,
         preloadBeforeSync: true,
-        replace: true,
+        replace: false,
         append: false,
       })
     }
