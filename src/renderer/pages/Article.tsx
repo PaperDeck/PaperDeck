@@ -359,7 +359,7 @@ export default function Article() {
           </p>
         </div>
         {articleContent && (
-          <div className="flex flex-col text-wrap wrap-break-word gap-5 mt-3 mb-10">
+          <div className="flex flex-col text-wrap wrap-break-word gap-5 mt-3 mb-10 leading-loose">
             {parse(cleanContent, {
               replace: (domNode) => {
                 if (domNode.type === "tag" && domNode.tagName === "a") {
