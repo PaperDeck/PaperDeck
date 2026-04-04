@@ -29,6 +29,8 @@ const api = {
       ipcRenderer.invoke("articleService", "markAllArticlesAsRead"),
     getArticleContentById: (articleId: string) =>
       ipcRenderer.invoke("articleService", "getArticleContentById", articleId),
+    markArticleAsUnread: (articleId: string) =>
+      ipcRenderer.invoke("articleService", "markArticleAsUnread", articleId),
   },
   feedService: {
     addFeed: (title: string, url: string) =>

@@ -34,6 +34,7 @@ interface ArticlesState {
     append?: boolean
   }) => Promise<void>
   markArticleAsRead: (articleId: string) => Promise<void>
+  markArticleAsUnread: (articleId: string) => Promise<void>
   hasMore: boolean
   setFetchResult: (result: SyncResult) => void
   fetchResult: SyncResult | null
@@ -116,6 +117,15 @@ const useArticlesStore = create<ArticlesState>((set) => ({
   },
   setSyncProcess: (total, completed) =>
     set({ syncProcess: { total, completed } }),
+  markArticleAsUnread: async (articleId: string) => {
+    set((state) => {
+      const updatedArticles =
+        state.articles?.map((article) =>
+          article.id === articleId ? { ...article, isRead: false } : article,
+        ) || null
+      return { articles: updatedArticles }
+    })
+  },
 }))
 
 interface UseArticlesReturn extends ArticlesState {
@@ -137,6 +147,7 @@ export default function useArticles(): UseArticlesReturn {
     fetchResult,
     setSyncProcess,
     syncProcess,
+    markArticleAsUnread,
   } = useArticlesStore()
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
@@ -198,7 +209,7 @@ export default function useArticles(): UseArticlesReturn {
       await fetchArticles({
         syncFeeds: true,
         preloadBeforeSync: true,
-        replace: true,
+        replace: false,
         append: false,
       })
     }
@@ -232,5 +243,6 @@ export default function useArticles(): UseArticlesReturn {
     syncProcess,
     setSyncProcess,
     fetchArticles,
+    markArticleAsUnread,
   }
 }

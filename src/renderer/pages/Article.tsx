@@ -2,7 +2,7 @@ import { Navigate, useParams } from "react-router"
 import useArticles from "@/renderer/hooks/useArticles"
 import DOMPurify from "dompurify"
 import parse from "html-react-parser"
-import { useOpenInBrowser } from "@/renderer/hooks/useApi"
+import { useOpenInBrowser, useArticleService } from "@/renderer/hooks/useApi"
 import type { DOMNode } from "html-react-parser"
 import type { ChildNode } from "domhandler"
 import { cn } from "@/renderer/lib/utils"
@@ -13,8 +13,26 @@ import { useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
 import Blockquote from "@/renderer/components/Blockquote"
 import type { ArticleWithFeed } from "@/shared/types/article"
-import { useArticleService } from "@/renderer/hooks/useApi"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import {
+  ArrowLeft,
+  EllipsisVertical,
+  SquareArrowOutUpRight,
+} from "lucide-react"
+import IconButton from "@/renderer/components/IconButton"
+import {
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuItem,
+} from "@/renderer/components/ui/dropdown-menu"
+import { BellDot } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/renderer/components/ui/tooltip"
+import toast from "react-hot-toast"
 
 function isUrl(str: string): boolean {
   try {
@@ -206,32 +224,53 @@ function getTextFromNode(
 export default function Article() {
   const { id } = useParams<{ id: string }>()
   const decodedId = decodeURIComponent(id || "")
-  const { articles, markArticleAsRead } = useArticles()
-  const article = articles?.find((a) => a.id === decodedId)
+  const { articles, markArticleAsRead, markArticleAsUnread } = useArticles()
+  const article = useMemo(() => {
+    if (!articles) return null
+    return articles.find((a) => a.id === decodedId) || null
+  }, [articles, decodedId])
   const openInBrowser = useOpenInBrowser()
   const articleService = useArticleService()
-  const { theme } = useDataStorage()
+  const { theme, filterType } = useDataStorage()
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [articleContent, setArticleContent] = useState<string | null>(null)
+  const markedAsRead = useRef<boolean>(false)
 
   const isDark =
     theme === "dark" ||
     (theme === "system" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches)
+
+  useEffect(() => {
+    markedAsRead.current = false
+  }, [article?.id])
+
   useEffect(() => {
     const markRead = async () => {
-      if (article && !article.isRead) {
-        const result = await articleService.markArticleAsRead(article.id)
-        if (result.success) {
-          await markArticleAsRead(article.id)
-        } else {
-          console.error("Failed to mark article as read:", result.error)
+      if (
+        filterType === "unread" &&
+        article &&
+        !article.isRead &&
+        !markedAsRead.current
+      ) {
+        try {
+          const result = await articleService.markArticleAsRead(article.id)
+          if (result.success) {
+            await markArticleAsRead(article.id)
+          } else {
+            markedAsRead.current = false
+            console.error("Failed to mark article as read:", result.error)
+          }
+        } catch (error) {
+          markedAsRead.current = false
+          console.error("Failed to mark article as read:", error)
         }
       }
+      markedAsRead.current = true
     }
     markRead()
-  }, [article, articleService, markArticleAsRead])
+  }, [article, articleService, filterType, markArticleAsRead, t])
   useEffect(() => {
     const fetchContent = async () => {
       const result = await articleService.getArticleContentById(decodedId)
@@ -247,6 +286,7 @@ export default function Article() {
     () => DOMPurify.sanitize(articleContent || ""),
     [articleContent],
   )
+
   if (!articles) {
     return <></>
   }
@@ -254,15 +294,68 @@ export default function Article() {
     console.error("Article not found:", decodedId)
     return <Navigate to="/articles" replace></Navigate>
   }
+
+  const handleBackClick = () => navigate("/articles")
+  const handleViewOriginalClick = () => openInBrowser(article.link)
+  const handleMarkAsUnreadClick = async () => {
+    const result = await articleService.markArticleAsUnread(article.id)
+    if (result.success) {
+      await markArticleAsUnread(article.id)
+      toast.success(t("markedAsUnread"))
+    } else {
+      console.error("Failed to mark article as unread:", result.error)
+    }
+  }
+
   return (
     <div className="flex flex-col items-center mt-10">
       <div className="flex flex-col w-xl px-5">
-        <button
-          onClick={() => navigate("/articles")}
-          className="self-start mb-5 text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
-        >
-          &larr; {t("back")}
-        </button>
+        <div className="flex sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3">
+          <button
+            onClick={handleBackClick}
+            className="flex items-center gap-1 text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
+          >
+            <ArrowLeft size={16} />
+            {t("back")}
+          </button>
+          <div className="flex gap-2 ml-auto">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconButton
+                  disabled={!article.isRead}
+                  onClick={handleMarkAsUnreadClick}
+                >
+                  <BellDot
+                    size={18}
+                    className={cn(!article.isRead && "opacity-50")}
+                  />
+                </IconButton>
+              </TooltipTrigger>
+              <TooltipContent>{t("markAsUnread")}</TooltipContent>
+            </Tooltip>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <IconButton>
+                      <EllipsisVertical size={18} />
+                    </IconButton>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>{t("moreOptions")}</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent
+                className="w-full"
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
+                <DropdownMenuItem onClick={handleViewOriginalClick}>
+                  <SquareArrowOutUpRight size={16} className="mr-1" />
+                  {t("openInBrowser")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="flex items-center gap-3">
           {article.pubDate && (
@@ -275,7 +368,7 @@ export default function Article() {
           </p>
         </div>
         {articleContent && (
-          <div className="flex flex-col text-wrap wrap-break-word gap-5 mt-3 mb-10">
+          <div className="flex flex-col text-wrap wrap-break-word gap-5 mt-3 mb-10 leading-loose">
             {parse(cleanContent, {
               replace: (domNode) => {
                 if (domNode.type === "tag" && domNode.tagName === "a") {

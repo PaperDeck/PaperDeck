@@ -42,6 +42,12 @@ class ArticleService {
       data: { isRead: true },
     })
   }
+  async markArticleAsUnread(articleId: string) {
+    return prisma.article.update({
+      where: { id: articleId },
+      data: { isRead: false },
+    })
+  }
   async markAllArticlesAsRead() {
     return prisma.article.updateMany({
       where: { isRead: false },
