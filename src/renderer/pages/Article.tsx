@@ -334,11 +334,16 @@ export default function Article() {
               <TooltipContent>{t("markAsUnread")}</TooltipContent>
             </Tooltip>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <IconButton>
-                  <EllipsisVertical size={18} />
-                </IconButton>
-              </DropdownMenuTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <IconButton>
+                      <EllipsisVertical size={18} />
+                    </IconButton>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>{t("moreOptions")}</TooltipContent>
+              </Tooltip>
               <DropdownMenuContent
                 className="w-full"
                 onCloseAutoFocus={(e) => e.preventDefault()}
