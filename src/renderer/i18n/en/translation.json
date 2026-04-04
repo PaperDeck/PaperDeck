@@ -28,5 +28,6 @@
   "reloadImage": "Reload Image",
   "failedToLoadImage": "Failed to load image",
   "codeBlockCopy": "Copy",
-  "codeBlockCopyDone": "Copied"
+  "codeBlockCopyDone": "Copied",
+  "openInBrowser": "Open in Browser"
 }

@@ -2,7 +2,7 @@ import { Navigate, useParams } from "react-router"
 import useArticles from "@/renderer/hooks/useArticles"
 import DOMPurify from "dompurify"
 import parse from "html-react-parser"
-import { useOpenInBrowser } from "@/renderer/hooks/useApi"
+import { useOpenInBrowser, useArticleService } from "@/renderer/hooks/useApi"
 import type { DOMNode } from "html-react-parser"
 import type { ChildNode } from "domhandler"
 import { cn } from "@/renderer/lib/utils"
@@ -13,8 +13,19 @@ import { useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
 import Blockquote from "@/renderer/components/Blockquote"
 import type { ArticleWithFeed } from "@/shared/types/article"
-import { useArticleService } from "@/renderer/hooks/useApi"
 import { useEffect, useMemo, useState } from "react"
+import {
+  ArrowLeft,
+  EllipsisVertical,
+  SquareArrowOutUpRight,
+} from "lucide-react"
+import IconButton from "@/renderer/components/IconButton"
+import {
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuItem,
+} from "@/renderer/components/ui/dropdown-menu"
 
 function isUrl(str: string): boolean {
   try {
@@ -247,6 +258,7 @@ export default function Article() {
     () => DOMPurify.sanitize(articleContent || ""),
     [articleContent],
   )
+
   if (!articles) {
     return <></>
   }
@@ -254,16 +266,37 @@ export default function Article() {
     console.error("Article not found:", decodedId)
     return <Navigate to="/articles" replace></Navigate>
   }
+
+  const handleBackClick = () => navigate("/articles")
+  const handleViewOriginalClick = () => openInBrowser(article.link)
+
   return (
     <div className="flex flex-col items-center mt-10">
       <div className="flex flex-col w-xl px-5">
-        <div className="sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3">
+        <div className="flex sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3">
           <button
-            onClick={() => navigate("/articles")}
-            className="self-start text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
+            onClick={handleBackClick}
+            className="flex items-center gap-1 text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
           >
-            &larr; {t("back")}
+            <ArrowLeft size={16} />
+            {t("back")}
           </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <IconButton className="ml-auto">
+                <EllipsisVertical size={18} />
+              </IconButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-full"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              <DropdownMenuItem onClick={handleViewOriginalClick}>
+                <SquareArrowOutUpRight size={16} className="mr-1" />
+                {t("openInBrowser")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
         <div className="flex items-center gap-3">
