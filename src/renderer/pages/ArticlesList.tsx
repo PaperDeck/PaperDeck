@@ -1,7 +1,14 @@
 import { useState, useCallback, memo, useLayoutEffect, useRef } from "react"
 import { useArticleService } from "@/renderer/hooks/useApi"
 import useRelativeTime from "@/renderer/hooks/useRelativeTime"
-import { RefreshCcw, ListFilter, Check, MailCheck, Rocket } from "lucide-react"
+import {
+  RefreshCcw,
+  ListFilter,
+  Check,
+  MailCheck,
+  Rocket,
+  Plus,
+} from "lucide-react"
 import IconButton from "@/renderer/components/IconButton"
 import {
   Tooltip,
@@ -40,6 +47,7 @@ import {
   AlertTitle,
   AlertDescription,
 } from "@/renderer/components/ui/alert"
+import NewFeed from "@/renderer/components/NewFeed"
 
 const ARTICLES_PAGE_INDEX_STORAGE_KEY = "articles_page"
 
@@ -114,7 +122,8 @@ const ArticleRow = memo(
 export default function ArticlesList() {
   const articleService = useArticleService()
   const [isLoading, setIsLoading] = useState(false)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isMarkReadDialogOpen, setIsMarkReadDialogOpen] = useState(false)
+  const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
   const { t } = useTranslation()
   const {
     articles,
@@ -288,13 +297,16 @@ export default function ArticlesList() {
                 "hidden",
             )}
           >
-            <IconButton onClick={() => setIsDialogOpen(true)}>
+            <IconButton onClick={() => setIsMarkReadDialogOpen(true)}>
               <MailCheck size={24} />
             </IconButton>
           </TooltipTrigger>
           <TooltipContent>{t("markAllRead")}</TooltipContent>
         </Tooltip>
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialog
+          open={isMarkReadDialogOpen}
+          onOpenChange={setIsMarkReadDialogOpen}
+        >
           <AlertDialogContent size="sm">
             <AlertDialogHeader>
               <AlertDialogMedia>
@@ -313,6 +325,20 @@ export default function ArticlesList() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        <div className="ml-auto">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton onClick={() => setIsNewFeedDialogOpen(true)}>
+                <Plus size={24} />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("newFeed")}</TooltipContent>
+          </Tooltip>
+        </div>
+        <NewFeed
+          isOpen={isNewFeedDialogOpen}
+          onOpenChange={setIsNewFeedDialogOpen}
+        />
       </div>
       <div className="flex items-center flex-col w-md mb-4">
         {activeProcess && activeProcess.total > 0 && (
