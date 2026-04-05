@@ -43,7 +43,6 @@ export default function ArticlesList() {
   const handleRefresh = useCallback(async () => {
     setIsLoading(true)
     await fetchArticles({
-      syncFeeds: true,
       preloadBeforeSync: false,
       replace: true,
       append: false,
