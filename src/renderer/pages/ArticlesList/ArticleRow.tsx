@@ -1,4 +1,4 @@
-import { memo, useCallback, useLayoutEffect, useRef } from "react"
+import { memo, useCallback } from "react"
 import type { CSSProperties } from "react"
 import { cn } from "@/renderer/lib/utils"
 import type { ArticleWithFeed } from "@/shared/types/article"
@@ -26,13 +26,6 @@ function ArticleRowComponent({
     () => onClick(article, index),
     [onClick, article, index],
   )
-  const rowRef = useRef<HTMLButtonElement>(null)
-
-  useLayoutEffect(() => {
-    if (rowRef.current) {
-      measureElement(rowRef.current)
-    }
-  }, [measureElement, article.id])
 
   const style: CSSProperties = {
     position: "absolute",
@@ -41,7 +34,6 @@ function ArticleRowComponent({
     width: "100%",
     transform: `translateY(${top}px)`,
   }
-
   return (
     <button
       className={cn(
@@ -50,7 +42,7 @@ function ArticleRowComponent({
       )}
       style={style}
       onClick={handleClick}
-      ref={rowRef}
+      ref={measureElement}
       data-index={index}
     >
       <h2 className="text-xl mb-1 text-gray-900 dark:text-gray-100">
