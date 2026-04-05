@@ -116,7 +116,7 @@ export default function ArticlesList() {
     count: articles ? articles.length : 0,
     getScrollElement: () => scrollAreaRef.current,
     estimateSize: () => 200,
-    overscan: 10,
+    overscan: 5,
   })
   const virtualItems = virtualizer.getVirtualItems()
   useLayoutEffect(() => {
