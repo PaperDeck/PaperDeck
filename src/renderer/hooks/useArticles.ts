@@ -9,6 +9,7 @@ import { useCallback, useEffect } from "react"
 import type { IpcBridge } from "@/electron/preload"
 import type { SyncResult } from "@/electron/services/feedSyncService"
 import { useRef } from "react"
+import { useFeedService } from "@/renderer/hooks/useApi"
 
 interface FetchArticlesOptions {
   syncFeeds?: boolean
@@ -152,6 +153,7 @@ export default function useArticles(): UseArticlesReturn {
   const dataStorage = useDataStorage()
   const articleService = useArticleService()
   const feedSyncService = useFeedSyncService()
+  const feedService = useFeedService()
 
   const fetchArticles = useCallback(
     async (options: FetchArticlesOptions = {}) => {
@@ -175,7 +177,17 @@ export default function useArticles(): UseArticlesReturn {
       }
 
       if (syncFeeds) {
-        setSyncProcess(0, 0)
+        const feedsResult = await feedService.getFeeds()
+        if (!feedsResult.success) {
+          console.error(
+            "Failed to fetch feeds before syncing:",
+            feedsResult.error,
+          )
+          return
+        }
+        const totalFeeds = feedsResult.data.length
+
+        setSyncProcess(totalFeeds, 0)
         const syncResult = await feedSyncService.syncFeeds(setSyncProcess)
         setFetchResult(syncResult.data)
       }
@@ -197,6 +209,7 @@ export default function useArticles(): UseArticlesReturn {
     [
       articleService,
       dataStorage,
+      feedService,
       feedSyncService,
       getArticles,
       setFetchResult,
