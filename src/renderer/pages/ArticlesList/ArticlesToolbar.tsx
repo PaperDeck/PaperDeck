@@ -1,6 +1,13 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Check, ListFilter, MailCheck, Plus, RefreshCcw } from "lucide-react"
+import {
+  Check,
+  ListFilter,
+  MailCheck,
+  Plus,
+  RefreshCcw,
+  Settings,
+} from "lucide-react"
 import { useInView } from "react-intersection-observer"
 import IconButton from "@/renderer/components/IconButton"
 import {
@@ -37,6 +44,7 @@ type ArticlesToolbarProps = {
   onFilterChange: (filter: "all" | "unread") => Promise<void>
   onMarkAllAsRead: () => Promise<void>
   onRefresh: () => Promise<void>
+  handleSettingsClick: () => void
 }
 
 export default function ArticlesToolbar({
@@ -47,6 +55,7 @@ export default function ArticlesToolbar({
   onFilterChange,
   onMarkAllAsRead,
   onRefresh,
+  handleSettingsClick,
 }: ArticlesToolbarProps) {
   const { t } = useTranslation()
   const [isMarkReadDialogOpen, setIsMarkReadDialogOpen] = useState(false)
@@ -168,7 +177,15 @@ export default function ArticlesToolbar({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <div>
+        <div className="flex gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton>
+                <Settings size={24} onClick={handleSettingsClick} />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("settings")}</TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <IconButton onClick={() => setIsNewFeedDialogOpen(true)}>

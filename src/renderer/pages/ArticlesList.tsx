@@ -96,6 +96,10 @@ export default function ArticlesList() {
     articles,
   ])
 
+  const handleSettingsClick = useCallback(() => {
+    navigate("/settings")
+  }, [navigate])
+
   const fromNow = useRelativeTime()
   const inViewRef = useOnInView(
     useCallback(
@@ -145,6 +149,7 @@ export default function ArticlesList() {
         onFilterChange={handleFilterChange}
         onMarkAllAsRead={handleMarkAllAsRead}
         onRefresh={handleRefresh}
+        handleSettingsClick={handleSettingsClick}
       />
       <ArticlesListContent
         activeProcess={activeProcess}
