@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Check, ListFilter, MailCheck, Plus, RefreshCcw } from "lucide-react"
+import { useInView } from "react-intersection-observer"
 import IconButton from "@/renderer/components/IconButton"
 import {
   Tooltip,
@@ -50,10 +51,14 @@ export default function ArticlesToolbar({
   const { t } = useTranslation()
   const [isMarkReadDialogOpen, setIsMarkReadDialogOpen] = useState(false)
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
+  const { ref: refreshAnchorRef, inView: isRefreshAnchorInView } = useInView({
+    threshold: 0,
+  })
+  const showStickyRefreshButton = !isRefreshAnchorInView
 
   return (
     <>
-      <div className="flex mb-5">
+      <div ref={refreshAnchorRef} className="flex mb-5">
         <Tooltip>
           <TooltipTrigger asChild>
             <IconButton
@@ -71,7 +76,7 @@ export default function ArticlesToolbar({
           <TooltipContent>{t("refreshFeeds")}</TooltipContent>
         </Tooltip>
       </div>
-      <div className="flex gap-1 w-md mb-1">
+      <div className="sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3 flex gap-1 justify-between w-md mb-1">
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -109,6 +114,24 @@ export default function ArticlesToolbar({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {showStickyRefreshButton && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                onClick={onRefresh}
+                disabled={isLoading || !fetchResult}
+              >
+                <RefreshCcw
+                  size={24}
+                  className={
+                    isLoading || !fetchResult ? "animate-spin opacity-50" : ""
+                  }
+                />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("refreshFeeds")}</TooltipContent>
+          </Tooltip>
+        )}
         <Tooltip>
           <TooltipTrigger
             asChild
@@ -145,7 +168,7 @@ export default function ArticlesToolbar({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <div className="ml-auto">
+        <div>
           <Tooltip>
             <TooltipTrigger asChild>
               <IconButton onClick={() => setIsNewFeedDialogOpen(true)}>
