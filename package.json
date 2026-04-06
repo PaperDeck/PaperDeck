@@ -6,7 +6,7 @@
   "main": "dist/electron/main.js",
   "scripts": {
     "dev": "concurrently --kill-others \"electron-rebuild -f -w better-sqlite3 && vite\" \"npx react-devtools\"",
-    "build-vite": "tsc -b && vite build",
+    "build-vite": "electron-rebuild -f -w better-sqlite3 && tsc -b && vite build",
     "prebuild": "node scripts/generate-db.js && npx prisma generate",
     "lint": "eslint .",
     "preview": "vite preview",
