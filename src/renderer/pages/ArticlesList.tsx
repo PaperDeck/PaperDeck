@@ -137,6 +137,13 @@ export default function ArticlesList() {
       clearTimeout(timeoutId)
     }
   }, [virtualizer])
+  const handleNewFeedAdded = useCallback(() => {
+    getArticles({
+      articleService,
+      ignoreRead: filterType === "unread",
+      replace: true,
+    })
+  }, [articleService, filterType, getArticles])
 
   return (
     <div className="flex flex-col items-center pt-10">
@@ -149,6 +156,7 @@ export default function ArticlesList() {
         onMarkAllAsRead={handleMarkAllAsRead}
         onRefresh={handleRefresh}
         handleSettingsClick={handleSettingsClick}
+        handleNewFeedAdded={handleNewFeedAdded}
       />
       <ArticlesListContent
         activeProcess={activeProcess}

@@ -45,6 +45,7 @@ type ArticlesToolbarProps = {
   onMarkAllAsRead: () => Promise<void>
   onRefresh: () => Promise<void>
   handleSettingsClick: () => void
+  handleNewFeedAdded: () => void
 }
 
 export default function ArticlesToolbar({
@@ -56,6 +57,7 @@ export default function ArticlesToolbar({
   onMarkAllAsRead,
   onRefresh,
   handleSettingsClick,
+  handleNewFeedAdded,
 }: ArticlesToolbarProps) {
   const { t } = useTranslation()
   const [isMarkReadDialogOpen, setIsMarkReadDialogOpen] = useState(false)
@@ -200,6 +202,7 @@ export default function ArticlesToolbar({
         <NewFeed
           isOpen={isNewFeedDialogOpen}
           onOpenChange={setIsNewFeedDialogOpen}
+          onFeedAdded={handleNewFeedAdded}
         />
       </div>
     </>
