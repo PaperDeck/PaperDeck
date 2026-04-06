@@ -44,7 +44,7 @@ export default function ArticlesList() {
     setIsLoading(true)
     await fetchArticles({
       preloadBeforeSync: false,
-      replace: true,
+      replace: false,
       append: false,
     })
     setIsLoading(false)
