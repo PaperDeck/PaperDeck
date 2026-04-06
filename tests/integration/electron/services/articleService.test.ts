@@ -48,18 +48,46 @@ beforeEach(async () => {
 
 describe.sequential("ArticleService", () => {
   it("should save articles and upsert correctly", async () => {
-    const saved = await articleService.saveArticles(feedUrl, testArticles)
-    expect(saved).toHaveLength(2)
-    expect(saved[0].id).toBe(testArticles[0].guid)
-    expect(saved[1].id).toBe(testArticles[1].guid)
+    await articleService.saveArticles(feedUrl, testArticles)
+    const { articles } = await articleService.getAll({
+      includeFeeds: true,
+      ignoreRead: false,
+    })
+    const savedArticles = articles.filter((a) => a.feed?.url === feedUrl)
+    const article1 = savedArticles.find((a) => a.id === testArticles[0].guid)
+    const article2 = savedArticles.find((a) => a.id === testArticles[1].guid)
+    expect(article1).toBeDefined()
+    expect(article2).toBeDefined()
+    expect(article1?.title).toBe(testArticles[0].title)
+    expect(article2?.title).toBe(testArticles[1].title)
+    expect(savedArticles).toHaveLength(testArticles.length)
+    expect(savedArticles[0].feed?.url).toBe(feedUrl)
 
     const updatedArticles = [
       { ...testArticles[0], summary: "Updated Summary 1" },
       { ...testArticles[1], summary: "Updated Summary 2" },
     ]
-    const updated = await articleService.saveArticles(feedUrl, updatedArticles)
-    expect(updated[0].summary).toBe("Updated Summary 1")
-    expect(updated[1].summary).toBe("Updated Summary 2")
+    await articleService.saveArticles(feedUrl, updatedArticles)
+
+    const { articles: updatedSavedArticles } = await articleService.getAll({
+      includeFeeds: true,
+      ignoreRead: false,
+      selectRawSummary: true,
+    })
+    const updatedArticlesFromDb = updatedSavedArticles.filter(
+      (a) => a.feed?.url === feedUrl,
+    )
+    const updatedArticle1 = updatedArticlesFromDb.find(
+      (a) => a.id === testArticles[0].guid,
+    )
+    const updatedArticle2 = updatedArticlesFromDb.find(
+      (a) => a.id === testArticles[1].guid,
+    )
+    expect(updatedArticlesFromDb).toHaveLength(testArticles.length)
+    expect(updatedArticle1).toBeDefined()
+    expect(updatedArticle2).toBeDefined()
+    expect(updatedArticle1?.summary).toBe("Updated Summary 1")
+    expect(updatedArticle2?.summary).toBe("Updated Summary 2")
   })
 
   it("should mark article as read", async () => {
