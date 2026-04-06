@@ -67,7 +67,7 @@ function CodeBlock({ code, language, theme, className }: CodeBlockProps) {
         <ShikiHighlighter
           language={language}
           theme={shikiTheme}
-          className={cn("whitespace-pre-wrap", className)}
+          className={cn("whitespace-pre", className)}
         >
           {code}
         </ShikiHighlighter>
