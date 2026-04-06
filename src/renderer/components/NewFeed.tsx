@@ -38,9 +38,11 @@ function isUrl(str: string) {
 export default function NewFeed({
   isOpen,
   onOpenChange,
+  onFeedAdded,
 }: {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  onFeedAdded?: () => void
 }) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
@@ -98,6 +100,7 @@ export default function NewFeed({
       }
       handleDialogOpenChange(false)
       toast.success(t("feedAdded"))
+      onFeedAdded?.()
       setIsAdding(false)
     }
     addFeed()
