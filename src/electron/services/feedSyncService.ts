@@ -5,7 +5,7 @@ import { ParserError } from "@/shared/types/feedParser"
 import articleService from "@/electron/services/articleService"
 
 // TODO: Let user configure concurrency limit
-const DEFAULT_CONCURRENCY_LIMIT = 25
+const DEFAULT_CONCURRENCY_LIMIT = 5
 const limit = pLimit(DEFAULT_CONCURRENCY_LIMIT)
 
 export interface SyncResult {
@@ -28,6 +28,7 @@ class FeedSyncService {
       limit(async () => {
         try {
           const parsedFeed = await feedParser(feed.url)
+          await new Promise((resolve) => setImmediate(resolve))
           await feedService.updateFeed(feed.url, parsedFeed.title ?? "")
           await articleService.saveArticles(feed.url, parsedFeed.items)
         } catch (error) {
