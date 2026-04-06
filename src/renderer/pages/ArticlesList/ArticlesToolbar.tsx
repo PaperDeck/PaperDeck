@@ -64,6 +64,7 @@ export default function ArticlesToolbar({
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
   const { ref: refreshAnchorRef, inView: isRefreshAnchorInView } = useInView({
     threshold: 0,
+    initialInView: true,
   })
   const showStickyRefreshButton = !isRefreshAnchorInView
 
