@@ -76,6 +76,7 @@ export default function ArticlesToolbar({
             <IconButton
               onClick={onRefresh}
               disabled={isLoading || !fetchResult}
+              aria-label={t("refreshFeeds")}
             >
               <RefreshCcw
                 size={32}
@@ -94,7 +95,7 @@ export default function ArticlesToolbar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <IconButton>
+                  <IconButton aria-label={t("filterArticles")}>
                     <ListFilter size={24} />
                   </IconButton>
                 </DropdownMenuTrigger>
@@ -135,7 +136,10 @@ export default function ArticlesToolbar({
                   "invisible",
               )}
             >
-              <IconButton onClick={() => setIsMarkReadDialogOpen(true)}>
+              <IconButton
+                onClick={() => setIsMarkReadDialogOpen(true)}
+                aria-label={t("markAllRead")}
+              >
                 <MailCheck size={24} />
               </IconButton>
             </TooltipTrigger>
@@ -170,6 +174,7 @@ export default function ArticlesToolbar({
               <IconButton
                 onClick={onRefresh}
                 disabled={isLoading || !fetchResult}
+                aria-label={t("refreshFeeds")}
               >
                 <RefreshCcw
                   size={24}
@@ -185,15 +190,21 @@ export default function ArticlesToolbar({
         <div className="flex gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <IconButton>
-                <Settings size={24} onClick={handleSettingsClick} />
+              <IconButton
+                onClick={handleSettingsClick}
+                aria-label={t("settings")}
+              >
+                <Settings size={24} />
               </IconButton>
             </TooltipTrigger>
             <TooltipContent>{t("settings")}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <IconButton onClick={() => setIsNewFeedDialogOpen(true)}>
+              <IconButton
+                onClick={() => setIsNewFeedDialogOpen(true)}
+                aria-label={t("newFeed")}
+              >
                 <Plus size={24} />
               </IconButton>
             </TooltipTrigger>

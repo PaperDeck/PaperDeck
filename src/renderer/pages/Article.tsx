@@ -324,6 +324,7 @@ export default function Article() {
                 <IconButton
                   disabled={!article.isRead}
                   onClick={handleMarkAsUnreadClick}
+                  aria-label={t("markAsUnread")}
                 >
                   <BellDot
                     size={18}
@@ -337,7 +338,7 @@ export default function Article() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
-                    <IconButton>
+                    <IconButton aria-label={t("moreOptions")}>
                       <EllipsisVertical size={18} />
                     </IconButton>
                   </DropdownMenuTrigger>
@@ -348,7 +349,10 @@ export default function Article() {
                 className="w-full"
                 onCloseAutoFocus={(e) => e.preventDefault()}
               >
-                <DropdownMenuItem onClick={handleViewOriginalClick}>
+                <DropdownMenuItem
+                  onClick={handleViewOriginalClick}
+                  aria-label={t("openInBrowser")}
+                >
                   <SquareArrowOutUpRight size={16} className="mr-1" />
                   {t("openInBrowser")}
                 </DropdownMenuItem>

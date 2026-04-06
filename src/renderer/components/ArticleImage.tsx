@@ -69,7 +69,10 @@ export default function ArticleImage({
           <p className="mb-3">{t("failedToLoadImage")}</p>
           <Tooltip>
             <TooltipTrigger asChild>
-              <IconButton onClick={handleReloadImage}>
+              <IconButton
+                onClick={handleReloadImage}
+                aria-label={t("reloadImage")}
+              >
                 <RefreshCcw size={24} />
               </IconButton>
             </TooltipTrigger>
