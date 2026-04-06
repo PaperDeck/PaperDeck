@@ -8,11 +8,17 @@ import articleService from "@/electron/services/articleService"
 const DEFAULT_CONCURRENCY_LIMIT = 5
 const limit = pLimit(DEFAULT_CONCURRENCY_LIMIT)
 
+export interface FeedParserIssue {
+  url: string
+  message: string
+  statusCode?: number
+}
+
 export interface SyncResult {
   allFeeds: number
   successCount: number
   errorCount: number
-  errors: ParserError[]
+  errors: FeedParserIssue[]
 }
 
 class FeedSyncService {
@@ -21,7 +27,7 @@ class FeedSyncService {
     callBack?: (syncId: string, total: number, completed: number) => void,
   ): Promise<SyncResult> {
     const feeds = await feedService.getFeeds()
-    const allErrors: ParserError[] = []
+    const allErrors: FeedParserIssue[] = []
     let errorCount = 0
     let completedCount = 0
     const syncPromises = feeds.map((feed) =>
@@ -33,7 +39,11 @@ class FeedSyncService {
           await articleService.saveArticles(feed.url, parsedFeed.items)
         } catch (error) {
           if (error instanceof ParserError) {
-            allErrors.push(error)
+            allErrors.push({
+              url: feed.url,
+              message: error.message,
+              statusCode: error.statusCode,
+            })
           } else {
             console.error(`Unexpected error syncing feed ${feed.url}:`, error)
           }
