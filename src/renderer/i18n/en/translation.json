@@ -32,5 +32,9 @@
   "markAsUnread": "Mark As Unread",
   "markedAsUnread": "Marked As Unread",
   "moreOptions": "More Options",
-  "settings": "Settings"
+  "settings": "Settings",
+  "theme": "Theme",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System"
 }
