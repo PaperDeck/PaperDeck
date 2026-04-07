@@ -17,6 +17,9 @@ export default defineConfig({
     electron({
       main: {
         entry: path.join(__dirname, "src/electron/main.ts"),
+        onstart({ startup }) {
+          startup([".", "--inspect"])
+        },
         vite: {
           build: {
             outDir: path.join(__dirname, "dist/electron"),

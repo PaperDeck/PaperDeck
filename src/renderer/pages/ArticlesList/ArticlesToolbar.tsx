@@ -1,6 +1,14 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Check, ListFilter, MailCheck, Plus, RefreshCcw } from "lucide-react"
+import {
+  Check,
+  ListFilter,
+  MailCheck,
+  Plus,
+  RefreshCcw,
+  Settings,
+} from "lucide-react"
+import { useInView } from "react-intersection-observer"
 import IconButton from "@/renderer/components/IconButton"
 import {
   Tooltip,
@@ -36,6 +44,8 @@ type ArticlesToolbarProps = {
   onFilterChange: (filter: "all" | "unread") => Promise<void>
   onMarkAllAsRead: () => Promise<void>
   onRefresh: () => Promise<void>
+  handleSettingsClick: () => void
+  handleNewFeedAdded: () => void
 }
 
 export default function ArticlesToolbar({
@@ -46,19 +56,27 @@ export default function ArticlesToolbar({
   onFilterChange,
   onMarkAllAsRead,
   onRefresh,
+  handleSettingsClick,
+  handleNewFeedAdded,
 }: ArticlesToolbarProps) {
   const { t } = useTranslation()
   const [isMarkReadDialogOpen, setIsMarkReadDialogOpen] = useState(false)
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
+  const { ref: refreshAnchorRef, inView: isRefreshAnchorInView } = useInView({
+    threshold: 0,
+    initialInView: true,
+  })
+  const showStickyRefreshButton = !isRefreshAnchorInView
 
   return (
     <>
-      <div className="flex mb-5">
+      <div ref={refreshAnchorRef} className="flex mb-5">
         <Tooltip>
           <TooltipTrigger asChild>
             <IconButton
               onClick={onRefresh}
               disabled={isLoading || !fetchResult}
+              aria-label={t("refreshFeeds")}
             >
               <RefreshCcw
                 size={32}
@@ -71,84 +89,122 @@ export default function ArticlesToolbar({
           <TooltipContent>{t("refreshFeeds")}</TooltipContent>
         </Tooltip>
       </div>
-      <div className="flex gap-1 w-md mb-1">
-        <DropdownMenu>
+      <div className="sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3 flex gap-1 justify-between w-md mb-1">
+        <div className="flex gap-1">
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <IconButton aria-label={t("filterArticles")}>
+                    <ListFilter size={24} />
+                  </IconButton>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>{t("filterArticles")}</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent
+              className="flex flex-col whitespace-nowrap w-40"
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              <DropdownMenuItem
+                className={cn(filterType === "all" && "font-bold")}
+                onSelect={() => onFilterChange("all")}
+              >
+                <Check
+                  size={16}
+                  className={filterType === "all" ? "" : "opacity-0"}
+                />
+                {t("allArticles")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className={cn(filterType === "unread" && "font-bold")}
+                onSelect={() => onFilterChange("unread")}
+              >
+                <Check
+                  size={16}
+                  className={filterType === "unread" ? "" : "opacity-0"}
+                />
+                {t("unreadArticles")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <IconButton>
-                  <ListFilter size={24} />
-                </IconButton>
-              </DropdownMenuTrigger>
+            <TooltipTrigger
+              asChild
+              className={cn(
+                (filterType === "all" || isLoading || articleCount === 0) &&
+                  "invisible",
+              )}
+            >
+              <IconButton
+                onClick={() => setIsMarkReadDialogOpen(true)}
+                aria-label={t("markAllRead")}
+              >
+                <MailCheck size={24} />
+              </IconButton>
             </TooltipTrigger>
-            <TooltipContent>{t("filterArticles")}</TooltipContent>
+            <TooltipContent>{t("markAllRead")}</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent
-            className="flex flex-col whitespace-nowrap w-40"
-            onCloseAutoFocus={(e) => e.preventDefault()}
+          <AlertDialog
+            open={isMarkReadDialogOpen}
+            onOpenChange={setIsMarkReadDialogOpen}
           >
-            <DropdownMenuItem
-              className={cn(filterType === "all" && "font-bold")}
-              onSelect={() => onFilterChange("all")}
-            >
-              <Check
-                size={16}
-                className={filterType === "all" ? "" : "opacity-0"}
-              />
-              {t("allArticles")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className={cn(filterType === "unread" && "font-bold")}
-              onSelect={() => onFilterChange("unread")}
-            >
-              <Check
-                size={16}
-                className={filterType === "unread" ? "" : "opacity-0"}
-              />
-              {t("unreadArticles")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger
-            asChild
-            className={cn(
-              (filterType === "all" || isLoading || articleCount === 0) &&
-                "hidden",
-            )}
-          >
-            <IconButton onClick={() => setIsMarkReadDialogOpen(true)}>
-              <MailCheck size={24} />
-            </IconButton>
-          </TooltipTrigger>
-          <TooltipContent>{t("markAllRead")}</TooltipContent>
-        </Tooltip>
-        <AlertDialog
-          open={isMarkReadDialogOpen}
-          onOpenChange={setIsMarkReadDialogOpen}
-        >
-          <AlertDialogContent size="sm">
-            <AlertDialogHeader>
-              <AlertDialogMedia>
-                <MailCheck />
-              </AlertDialogMedia>
-              <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("markAllAsReadConfirmation")}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-              <AlertDialogAction onClick={onMarkAllAsRead}>
-                {t("confirm")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <div className="ml-auto">
+            <AlertDialogContent size="sm">
+              <AlertDialogHeader>
+                <AlertDialogMedia>
+                  <MailCheck />
+                </AlertDialogMedia>
+                <AlertDialogTitle>{t("areYouSure")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("markAllAsReadConfirmation")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={onMarkAllAsRead}>
+                  {t("confirm")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+        {showStickyRefreshButton && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <IconButton onClick={() => setIsNewFeedDialogOpen(true)}>
+              <IconButton
+                onClick={onRefresh}
+                disabled={isLoading || !fetchResult}
+                aria-label={t("refreshFeeds")}
+              >
+                <RefreshCcw
+                  size={24}
+                  className={
+                    isLoading || !fetchResult ? "animate-spin opacity-50" : ""
+                  }
+                />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("refreshFeeds")}</TooltipContent>
+          </Tooltip>
+        )}
+        <div className="flex gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                onClick={handleSettingsClick}
+                aria-label={t("settings")}
+              >
+                <Settings size={24} />
+              </IconButton>
+            </TooltipTrigger>
+            <TooltipContent>{t("settings")}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                onClick={() => setIsNewFeedDialogOpen(true)}
+                aria-label={t("newFeed")}
+              >
                 <Plus size={24} />
               </IconButton>
             </TooltipTrigger>
@@ -158,6 +214,7 @@ export default function ArticlesToolbar({
         <NewFeed
           isOpen={isNewFeedDialogOpen}
           onOpenChange={setIsNewFeedDialogOpen}
+          onFeedAdded={handleNewFeedAdded}
         />
       </div>
     </>

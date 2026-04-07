@@ -34,7 +34,7 @@ export default function MainLayout() {
     root.classList.add(theme)
   }, [theme])
   return (
-    <ScrollArea className="bg-zinc-50 dark:bg-zinc-900 h-screen overflow-auto">
+    <ScrollArea className="bg-zinc-50 dark:bg-zinc-900 h-screen" horizontal>
       <Outlet></Outlet>
     </ScrollArea>
   )

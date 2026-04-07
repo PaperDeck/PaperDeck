@@ -72,7 +72,6 @@ const api = {
       ipcRenderer.invoke("dataStorage", "setFilterType", filterType),
   },
   openInBrowser: (url: string) => ipcRenderer.invoke("openInBrowser", url),
-  fetchImage: (url: string) => ipcRenderer.invoke("fetchImage", url),
 }
 
 contextBridge.exposeInMainWorld("ipcBridge", api)

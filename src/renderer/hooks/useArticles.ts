@@ -12,7 +12,6 @@ import { useRef } from "react"
 import { useFeedService } from "@/renderer/hooks/useApi"
 
 interface FetchArticlesOptions {
-  syncFeeds?: boolean
   preloadBeforeSync?: boolean
   replace?: boolean
   append?: boolean
@@ -158,7 +157,6 @@ export default function useArticles(): UseArticlesReturn {
   const fetchArticles = useCallback(
     async (options: FetchArticlesOptions = {}) => {
       const {
-        syncFeeds = false,
         preloadBeforeSync = false,
         replace = true,
         append = false,
@@ -176,21 +174,19 @@ export default function useArticles(): UseArticlesReturn {
         })
       }
 
-      if (syncFeeds) {
-        const feedsResult = await feedService.getFeeds()
-        if (!feedsResult.success) {
-          console.error(
-            "Failed to fetch feeds before syncing:",
-            feedsResult.error,
-          )
-          return
-        }
-        const totalFeeds = feedsResult.data.length
-
-        setSyncProcess(totalFeeds, 0)
-        const syncResult = await feedSyncService.syncFeeds(setSyncProcess)
-        setFetchResult(syncResult.data)
+      const feedsResult = await feedService.getFeeds()
+      if (!feedsResult.success) {
+        console.error(
+          "Failed to fetch feeds before syncing:",
+          feedsResult.error,
+        )
+        return
       }
+      const totalFeeds = feedsResult.data.length
+
+      setSyncProcess(totalFeeds, 0)
+      const syncResult = await feedSyncService.syncFeeds(setSyncProcess)
+      setFetchResult(syncResult.data)
 
       const latestFilterTypeResult = await dataStorage.getFilterType()
       const latestIgnoreRead = latestFilterTypeResult.data === "unread"
@@ -202,9 +198,7 @@ export default function useArticles(): UseArticlesReturn {
         append,
       })
 
-      if (syncFeeds) {
-        setSyncProcess(0, 0)
-      }
+      setSyncProcess(0, 0)
     },
     [
       articleService,
@@ -220,7 +214,6 @@ export default function useArticles(): UseArticlesReturn {
   useEffect(() => {
     const initializeArticles = async () => {
       await fetchArticles({
-        syncFeeds: true,
         preloadBeforeSync: true,
         replace: false,
         append: false,

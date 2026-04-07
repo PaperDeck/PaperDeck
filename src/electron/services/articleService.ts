@@ -3,38 +3,42 @@ import type { ArticleWithFeed } from "@/shared/types/article"
 import type FeedItem from "@/shared/types/feedItem"
 import truncateText from "@/shared/utils/truncateText"
 import extractText from "@/electron/utils/extractText"
-
+import lodash from "lodash"
 class ArticleService {
   async saveArticles(feedUrl: string, articles: FeedItem[]) {
-    const operations = articles.map((article) => {
-      const pubDate = article.isoDate ? new Date(article.isoDate) : new Date()
-      const articleId = article.guid ?? article.link ?? ""
-      const newContent = article["content:encoded"] ?? article.content
-      return prisma.article.upsert({
-        where: { id: articleId },
-        update: {
-          title: article.title ?? "",
-          summary: article.summary ?? article.contentSnippet ?? "",
-          link: article.link ?? "",
-          ...(newContent && { content: newContent }),
-          pubDate,
-        },
-        create: {
-          id: articleId,
-          title: article.title ?? "",
-          link: article.link ?? "",
-          summary: article.summary ?? article.contentSnippet ?? "",
-          pubDate,
-          isRead: false,
-          content: newContent ?? "",
-          feed: {
-            connect: { url: feedUrl },
+    const CHUNK_SIZE = 100
+    const chunks: FeedItem[][] = lodash.chunk(articles, CHUNK_SIZE)
+
+    for (const chunk of chunks) {
+      const operations = chunk.map((article) => {
+        const pubDate = article.isoDate ? new Date(article.isoDate) : new Date()
+        const articleId = article.guid ?? article.link ?? ""
+        const newContent = article["content:encoded"] ?? article.content
+        return prisma.article.upsert({
+          where: { id: articleId },
+          update: {
+            title: article.title ?? "",
+            summary: article.summary ?? article.contentSnippet ?? "",
+            link: article.link ?? "",
+            pubDate,
           },
-        },
+          create: {
+            id: articleId,
+            title: article.title ?? "",
+            link: article.link ?? "",
+            summary: article.summary ?? article.contentSnippet ?? "",
+            pubDate,
+            isRead: false,
+            content: newContent ?? "",
+            feed: {
+              connect: { url: feedUrl },
+            },
+          },
+        })
       })
-    })
-    const results = await prisma.$transaction(operations)
-    return results
+      await prisma.$transaction(operations)
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    }
   }
   async markArticleAsRead(articleId: string) {
     return prisma.article.update({

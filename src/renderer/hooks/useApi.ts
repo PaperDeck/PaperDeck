@@ -39,6 +39,3 @@ export const useDataStorage = () => {
 export const useOpenInBrowser = () => {
   return window.ipcBridge.openInBrowser
 }
-export const useFetchImage = () => {
-  return window.ipcBridge.fetchImage
-}

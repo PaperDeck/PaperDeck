@@ -43,9 +43,8 @@ export default function ArticlesList() {
   const handleRefresh = useCallback(async () => {
     setIsLoading(true)
     await fetchArticles({
-      syncFeeds: true,
       preloadBeforeSync: false,
-      replace: true,
+      replace: false,
       append: false,
     })
     setIsLoading(false)
@@ -96,6 +95,10 @@ export default function ArticlesList() {
     articles,
   ])
 
+  const handleSettingsClick = useCallback(() => {
+    navigate("/settings")
+  }, [navigate])
+
   const fromNow = useRelativeTime()
   const inViewRef = useOnInView(
     useCallback(
@@ -113,7 +116,7 @@ export default function ArticlesList() {
     count: articles ? articles.length : 0,
     getScrollElement: () => scrollAreaRef.current,
     estimateSize: () => 200,
-    overscan: 10,
+    overscan: 5,
   })
   const virtualItems = virtualizer.getVirtualItems()
   useLayoutEffect(() => {
@@ -134,6 +137,13 @@ export default function ArticlesList() {
       clearTimeout(timeoutId)
     }
   }, [virtualizer])
+  const handleNewFeedAdded = useCallback(() => {
+    getArticles({
+      articleService,
+      ignoreRead: filterType === "unread",
+      replace: true,
+    })
+  }, [articleService, filterType, getArticles])
 
   return (
     <div className="flex flex-col items-center pt-10">
@@ -145,6 +155,8 @@ export default function ArticlesList() {
         onFilterChange={handleFilterChange}
         onMarkAllAsRead={handleMarkAllAsRead}
         onRefresh={handleRefresh}
+        handleSettingsClick={handleSettingsClick}
+        handleNewFeedAdded={handleNewFeedAdded}
       />
       <ArticlesListContent
         activeProcess={activeProcess}
