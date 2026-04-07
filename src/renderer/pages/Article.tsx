@@ -160,7 +160,11 @@ function detectCodeLanguage(domNode: DOMNode): string {
   return "plaintext"
 }
 
-function handleImage(domNode: DOMNode, article: ArticleWithFeed) {
+function handleImage(
+  domNode: DOMNode,
+  article: ArticleWithFeed,
+  caption?: string,
+) {
   if (domNode.type !== "tag" || domNode.tagName !== "img") {
     return
   }
@@ -175,7 +179,13 @@ function handleImage(domNode: DOMNode, article: ArticleWithFeed) {
     }
   }
   if (imageSrc) {
-    return <ArticleImage src={imageSrc} alt={domNode.attribs.alt} />
+    return (
+      <ArticleImage
+        src={imageSrc}
+        alt={domNode.attribs.alt}
+        caption={caption}
+      />
+    )
   }
 }
 
@@ -407,6 +417,24 @@ export default function Article() {
                   domNode.children[0].tagName === "img"
                 ) {
                   return handleImage(domNode.children[0], article)
+                }
+                if (domNode.type === "tag" && domNode.tagName === "figure") {
+                  const imageNode = domNode.children.find(
+                    (child) => child.type === "tag" && child.tagName === "img",
+                  )
+                  if (!imageNode || imageNode.type !== "tag") {
+                    return
+                  }
+
+                  const figcaptionNode = domNode.children.find(
+                    (child) =>
+                      child.type === "tag" && child.tagName === "figcaption",
+                  )
+                  const caption = figcaptionNode
+                    ? getTextFromNode(figcaptionNode).trim()
+                    : undefined
+
+                  return handleImage(imageNode, article, caption)
                 }
                 if (
                   domNode.type === "tag" &&

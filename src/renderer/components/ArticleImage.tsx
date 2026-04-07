@@ -1,9 +1,6 @@
-import { useFetchImage } from "@/renderer/hooks/useApi"
 import { useState } from "react"
 import { cn } from "@/renderer/lib/utils"
 import { Skeleton } from "@/renderer/components/ui/skeleton"
-import pLimit from "p-limit"
-import { useOnInView } from "react-intersection-observer"
 import { TriangleAlert, RefreshCcw } from "lucide-react"
 import {
   Tooltip,
@@ -13,55 +10,53 @@ import {
 import IconButton from "@/renderer/components/IconButton"
 import { useTranslation } from "react-i18next"
 
-const DEFAULT_IMAGE_CONCURRENCY_LIMIT = 5
-const imageFetchLimit = pLimit(DEFAULT_IMAGE_CONCURRENCY_LIMIT)
-
 interface ArticleImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string
   alt?: string
+  caption?: string
 }
 
 export default function ArticleImage({
   src,
   alt,
+  caption,
   className,
   ...props
 }: ArticleImageProps) {
-  const [loadedImage, setLoadedImage] = useState<{
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null)
+  const [reloadToken, setReloadToken] = useState<{
     source: string
-    displaySrc: string
+    timestamp: number
   } | null>(null)
   const [hasError, setHasError] = useState(false)
   const { t } = useTranslation()
-  const fetchImage = useFetchImage()
-  const loadImage = async () => {
-    const result = await imageFetchLimit(() => fetchImage(src))
+  const effectiveSrc =
+    reloadToken?.source === src
+      ? appendTimestamp(src, reloadToken.timestamp)
+      : src
+  const isLoaded = loadedSrc === effectiveSrc
 
-    if (!result.success) {
-      console.error("Failed to fetch image:", result.error)
-      setHasError(true)
-      return
-    }
-    setLoadedImage({
-      source: src,
-      displaySrc: result.data,
-    })
+  const handleLoad = () => {
+    setLoadedSrc(effectiveSrc)
+    console.log(`Image loaded: ${effectiveSrc}`)
   }
-  const inViewRef = useOnInView(loadImage, {
-    triggerOnce: true,
-  })
+
+  const handleError = () => {
+    setHasError(true)
+  }
+
   const handleReloadImage = () => {
     setHasError(false)
-    setLoadedImage(null)
-    loadImage()
+    setLoadedSrc(null)
+    setReloadToken({ source: src, timestamp: Date.now() })
   }
 
   return (
     <>
       {hasError ? (
-        <div
+        <span
           className={cn(
-            "w-full rounded h-48 border flex flex-col items-center justify-center text-gray-500 dark:text-gray-400",
+            "w-full rounded h-48 border flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 my-3",
             className,
           )}
         >
@@ -78,26 +73,41 @@ export default function ArticleImage({
             </TooltipTrigger>
             <TooltipContent>{t("reloadImage")}</TooltipContent>
           </Tooltip>
-        </div>
-      ) : !loadedImage || loadedImage.source !== src ? (
-        <Skeleton
-          className={cn("w-full h-48 rounded my-3", className)}
-          ref={inViewRef}
-        />
+        </span>
       ) : (
-        <img
-          src={loadedImage.displaySrc}
-          className={cn("max-w-full rounded mt-3", className)}
-          alt={alt}
-          onError={() => setHasError(true)}
-          {...props}
-        />
-      )}
-      {alt && (
-        <p className="text-sm text-center m-3 text-gray-500 dark:text-gray-400">
-          {alt}
-        </p>
+        <span className="flex flex-col gap-3 relative w-full">
+          {!isLoaded && (
+            <Skeleton className={cn("w-full h-48 rounded my-3", className)} />
+          )}
+          <img
+            key={effectiveSrc}
+            src={effectiveSrc}
+            className={cn(
+              "max-w-full rounded mt-3",
+              !isLoaded && "absolute inset-0 opacity-0",
+              className,
+            )}
+            alt={alt}
+            onLoad={handleLoad}
+            onError={handleError}
+            {...props}
+          />
+          {caption && (
+            <span className="text-sm text-center mb-2 text-gray-500 dark:text-gray-400">
+              {caption}
+            </span>
+          )}
+        </span>
       )}
     </>
   )
+}
+
+function appendTimestamp(src: string, timestamp: number) {
+  const hashIndex = src.indexOf("#")
+  const hash = hashIndex >= 0 ? src.slice(hashIndex) : ""
+  const baseSrc = hashIndex >= 0 ? src.slice(0, hashIndex) : src
+  const separator = baseSrc.includes("?") ? "&" : "?"
+
+  return `${baseSrc}${separator}t=${timestamp}${hash}`
 }
