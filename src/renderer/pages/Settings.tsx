@@ -2,6 +2,8 @@ import { useNavigate } from "react-router"
 import { ArrowLeft, Sun, Moon, Settings as SettingsIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import useDataStorage from "@/renderer/hooks/useDataStorage"
+import useFeeds from "@/renderer/hooks/useFeeds"
+import { useEffect } from "react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -11,12 +13,28 @@ import {
 } from "@/renderer/components/ui/dropdown-menu"
 import type { IDataStorage } from "@/shared/types/dataStorage"
 import { Button } from "@/renderer/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/renderer/components/ui/tooltip"
+import IconButton from "@/renderer/components/IconButton"
+import { Plus } from "lucide-react"
+import { useState } from "react"
+import NewFeed from "@/renderer/components/NewFeed"
 
 export default function Settings() {
   const navigate = useNavigate()
   const handleBackClick = () => navigate(-1)
   const { t } = useTranslation()
   const { theme, setTheme } = useDataStorage()
+  const { feeds, isLoading, getFeeds } = useFeeds()
+  const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
+
+  useEffect(() => {
+    getFeeds()
+  }, [getFeeds])
+
   const isTheme = (value: string): value is IDataStorage["theme"] => {
     return ["light", "dark", "system"].includes(value)
   }
@@ -68,6 +86,48 @@ export default function Settings() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        <div>
+          <div className="flex items-center mb-3">
+            <p className="font-bold">{t("feedsManagement")}</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconButton
+                  onClick={() => setIsNewFeedDialogOpen(true)}
+                  aria-label={t("newFeed")}
+                  className="ml-auto"
+                >
+                  <Plus size={24} />
+                </IconButton>
+              </TooltipTrigger>
+              <TooltipContent>{t("newFeed")}</TooltipContent>
+            </Tooltip>
+          </div>
+
+          {!isLoading && (!feeds || feeds.length === 0) && (
+            <p className="text-sm text-gray-500">{t("noFeeds")}</p>
+          )}
+          {!isLoading && feeds && feeds.length > 0 && (
+            <ul className="space-y-2">
+              {feeds.map((feed) => (
+                <li
+                  key={feed.url}
+                  className="rounded-md border border-gray-200 dark:border-gray-700 p-3"
+                >
+                  <p className="font-medium break-all">{feed.title}</p>
+                  <p className="text-sm text-gray-500 break-all">{feed.url}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <NewFeed
+          isOpen={isNewFeedDialogOpen}
+          onOpenChange={setIsNewFeedDialogOpen}
+          onFeedAdded={() => {
+            getFeeds()
+            setIsNewFeedDialogOpen(false)
+          }}
+        />
       </div>
     </div>
   )

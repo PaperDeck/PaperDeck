@@ -36,5 +36,7 @@
   "theme": "Theme",
   "light": "Light",
   "dark": "Dark",
-  "system": "System"
+  "system": "System",
+  "feedsManagement": "Feeds Management",
+  "noFeeds": "No feeds added yet."
 }
