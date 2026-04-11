@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next"
 import useDataStorage from "@/renderer/hooks/useDataStorage"
 import useFeeds from "@/renderer/hooks/useFeeds"
+import useArticles from "@/renderer/hooks/useArticles"
 import { useOpenInBrowser } from "@/renderer/hooks/useApi"
 import { useEffect, useState } from "react"
 import {
@@ -43,7 +44,7 @@ import IconButton from "@/renderer/components/IconButton"
 import { Plus } from "lucide-react"
 import NewFeed from "@/renderer/components/NewFeed"
 import type { Feed } from "@/../generated/prisma/browser"
-import { useFeedService } from "@/renderer/hooks/useApi"
+import { useArticleService, useFeedService } from "@/renderer/hooks/useApi"
 import toast from "react-hot-toast"
 
 type DeleteFeedDialogProps = {
@@ -93,11 +94,13 @@ export default function Settings() {
   const navigate = useNavigate()
   const handleBackClick = () => navigate(-1)
   const { t } = useTranslation()
-  const { theme, setTheme } = useDataStorage()
+  const { theme, setTheme, filterType } = useDataStorage()
   const { feeds, isLoading, getFeeds } = useFeeds()
+  const { getArticles } = useArticles()
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
   const [isDeleteFeedDialogOpen, setIsDeleteFeedDialogOpen] = useState(false)
   const [feedToDelete, setFeedToDelete] = useState<Feed | null>(null)
+  const articleService = useArticleService()
   const feedService = useFeedService()
   const openInBrowser = useOpenInBrowser()
 
@@ -124,6 +127,12 @@ export default function Settings() {
       return
     }
     await getFeeds()
+    await getArticles({
+      articleService,
+      ignoreRead: filterType === "unread",
+      replace: true,
+      append: false,
+    })
     setIsDeleteFeedDialogOpen(false)
     setFeedToDelete(null)
   }
@@ -248,8 +257,14 @@ export default function Settings() {
         <NewFeed
           isOpen={isNewFeedDialogOpen}
           onOpenChange={setIsNewFeedDialogOpen}
-          onFeedAdded={() => {
-            getFeeds()
+          onFeedAdded={async () => {
+            await getFeeds()
+            await getArticles({
+              articleService,
+              ignoreRead: filterType === "unread",
+              replace: true,
+              append: false,
+            })
             setIsNewFeedDialogOpen(false)
           }}
         />
