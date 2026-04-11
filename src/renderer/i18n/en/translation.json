@@ -38,5 +38,10 @@
   "dark": "Dark",
   "system": "System",
   "feedsManagement": "Feeds Management",
-  "noFeeds": "No feeds added yet."
+  "noFeeds": "No feeds added yet.",
+  "delete": "Delete",
+  "deleteFeedTitle": "Are you sure you want to delete \"{{feedTitle}}\"?",
+  "deleteFeedDescription": "This action will permanently remove the feed and all its articles.",
+  "feedDeleted": "Feed deleted",
+  "feedDeleteFailed": "Failed to delete feed"
 }

@@ -6,12 +6,13 @@ import {
   Settings as SettingsIcon,
   EllipsisVertical,
   SquareArrowOutUpRight,
+  Trash2,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import useDataStorage from "@/renderer/hooks/useDataStorage"
 import useFeeds from "@/renderer/hooks/useFeeds"
 import { useOpenInBrowser } from "@/renderer/hooks/useApi"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -20,6 +21,17 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuItem,
 } from "@/renderer/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/renderer/components/ui/alert-dialog"
 import type { IDataStorage } from "@/shared/types/dataStorage"
 import { Button } from "@/renderer/components/ui/button"
 import {
@@ -29,8 +41,53 @@ import {
 } from "@/renderer/components/ui/tooltip"
 import IconButton from "@/renderer/components/IconButton"
 import { Plus } from "lucide-react"
-import { useState } from "react"
 import NewFeed from "@/renderer/components/NewFeed"
+import type { Feed } from "@/../generated/prisma/browser"
+import { useFeedService } from "@/renderer/hooks/useApi"
+import toast from "react-hot-toast"
+
+type DeleteFeedDialogProps = {
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  feedTitle: string
+  onConfirm: () => Promise<void>
+  isLoading?: boolean
+}
+
+function DeleteFeedDialog({
+  isOpen,
+  onOpenChange,
+  feedTitle,
+  onConfirm,
+  isLoading,
+}: DeleteFeedDialogProps) {
+  const { t } = useTranslation()
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogMedia>
+            <Trash2 />
+          </AlertDialogMedia>
+          <AlertDialogTitle>
+            {t("deleteFeedTitle", { feedTitle })}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {t("deleteFeedDescription")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isLoading}>
+            {t("cancel")}
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} disabled={isLoading}>
+            {t("delete")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -39,6 +96,9 @@ export default function Settings() {
   const { theme, setTheme } = useDataStorage()
   const { feeds, isLoading, getFeeds } = useFeeds()
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
+  const [isDeleteFeedDialogOpen, setIsDeleteFeedDialogOpen] = useState(false)
+  const [feedToDelete, setFeedToDelete] = useState<Feed | null>(null)
+  const feedService = useFeedService()
   const openInBrowser = useOpenInBrowser()
 
   useEffect(() => {
@@ -52,6 +112,20 @@ export default function Settings() {
     if (isTheme(newTheme)) {
       setTheme(newTheme)
     }
+  }
+  const handleDeleteFeed = async () => {
+    if (!feedToDelete) return
+
+    const result = await feedService.deleteFeed(feedToDelete.url)
+    if (result.success) {
+      toast.success(t("feedDeleted"))
+    } else {
+      toast.error(t("feedDeleteFailed"))
+      return
+    }
+    await getFeeds()
+    setIsDeleteFeedDialogOpen(false)
+    setFeedToDelete(null)
   }
   return (
     <div className="flex flex-col items-center w-full mt-14">
@@ -67,7 +141,7 @@ export default function Settings() {
         <div>
           <p className="font-bold mb-2">{t("theme")}</p>
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 {theme === "light" && <Sun size={18} />}
                 {theme === "dark" && <Moon size={18} />}
@@ -152,6 +226,17 @@ export default function Settings() {
                           <SquareArrowOutUpRight size={16} className="mr-1" />
                           {t("openInBrowser")}
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setFeedToDelete(feed)
+                            setIsDeleteFeedDialogOpen(true)
+                          }}
+                          aria-label={t("delete")}
+                          variant="destructive"
+                        >
+                          <Trash2 size={16} className="mr-1" />
+                          {t("delete")}
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -167,6 +252,12 @@ export default function Settings() {
             getFeeds()
             setIsNewFeedDialogOpen(false)
           }}
+        />
+        <DeleteFeedDialog
+          isOpen={isDeleteFeedDialogOpen}
+          onOpenChange={setIsDeleteFeedDialogOpen}
+          feedTitle={feedToDelete?.title || ""}
+          onConfirm={handleDeleteFeed}
         />
       </div>
     </div>
