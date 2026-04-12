@@ -8,6 +8,7 @@ import {
   SquareArrowOutUpRight,
   Trash2,
   FileOutput,
+  Import,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import useDataStorage from "@/renderer/hooks/useDataStorage"
@@ -101,11 +102,12 @@ export default function Settings() {
   const { t } = useTranslation()
   const { theme, setTheme, filterType } = useDataStorage()
   const { feeds, isLoading, getFeeds } = useFeeds()
-  const { getArticles } = useArticles()
+  const { getArticles, fetchArticles } = useArticles()
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
   const [isDeleteFeedDialogOpen, setIsDeleteFeedDialogOpen] = useState(false)
   const [feedToDelete, setFeedToDelete] = useState<Feed | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [isImporting, setIsImporting] = useState(false)
   const articleService = useArticleService()
   const feedService = useFeedService()
   const importExportService = useImportExportService()
@@ -130,6 +132,41 @@ export default function Settings() {
       toast.error(t("exportFailed"))
     }
     setIsExporting(false)
+  }
+  const handleImport = async () => {
+    setIsImporting(true)
+    const importResult = await importExportService.importFromOPMLWithDialog()
+    if (importResult.data.canceled) {
+      setIsImporting(false)
+      return
+    }
+    if (!importResult.success) {
+      toast.error(t("importFailed"))
+    }
+
+    const importedCount = importResult.data.result.importedCount
+    const skippedCount = importResult.data.result.skippedCount
+    const totalCount = importResult.data.result.totalCount
+    if (totalCount === 0) {
+      toast.error(t("importNoFeedsFound"))
+      setIsImporting(false)
+      return
+    }
+    toast.success(
+      t("importSuccess", {
+        importedCount,
+        skippedCount,
+      }),
+    )
+    if (importedCount > 0) {
+      await getFeeds()
+      await fetchArticles({
+        preloadBeforeSync: false,
+        replace: false,
+        append: false,
+      })
+    }
+    setIsImporting(false)
   }
   const handleDeleteFeed = async () => {
     if (!feedToDelete) return
@@ -201,6 +238,18 @@ export default function Settings() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <IconButton
+                    onClick={handleImport}
+                    disabled={isImporting}
+                    aria-label={t("importFromOPML")}
+                  >
+                    <Import size={24} />
+                  </IconButton>
+                </TooltipTrigger>
+                <TooltipContent>{t("importFromOPML")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconButton
                     onClick={handleExport}
                     disabled={isExporting}
                     aria-label={t("exportToOPML")}
@@ -228,7 +277,7 @@ export default function Settings() {
             <p className="text-sm text-gray-500">{t("noFeeds")}</p>
           )}
           {!isLoading && feeds && feeds.length > 0 && (
-            <ul className="space-y-2">
+            <ul className="space-y-2 mb-5">
               {feeds.map((feed) => (
                 <li
                   key={feed.url}

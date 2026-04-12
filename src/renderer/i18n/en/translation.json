@@ -45,5 +45,9 @@
   "feedDeleted": "Feed deleted",
   "feedDeleteFailed": "Failed to delete feed",
   "exportToOPML": "Export to OPML",
-  "exportFailed": "Export failed"
+  "exportFailed": "Export failed",
+  "importFromOPML": "Import from OPML",
+  "importFailed": "Import failed",
+  "importSuccess": "Import completed: {{importedCount}} imported, {{skippedCount}} skipped",
+  "importNoFeedsFound": "No feeds available to import"
 }
