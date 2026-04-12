@@ -43,5 +43,7 @@
   "deleteFeedTitle": "Are you sure you want to delete \"{{feedTitle}}\"?",
   "deleteFeedDescription": "This action will permanently remove the feed and all its articles.",
   "feedDeleted": "Feed deleted",
-  "feedDeleteFailed": "Failed to delete feed"
+  "feedDeleteFailed": "Failed to delete feed",
+  "exportToOPML": "Export to OPML",
+  "exportFailed": "Export failed"
 }

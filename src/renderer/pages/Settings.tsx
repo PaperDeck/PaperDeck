@@ -7,6 +7,7 @@ import {
   EllipsisVertical,
   SquareArrowOutUpRight,
   Trash2,
+  FileOutput,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import useDataStorage from "@/renderer/hooks/useDataStorage"
@@ -44,7 +45,11 @@ import IconButton from "@/renderer/components/IconButton"
 import { Plus } from "lucide-react"
 import NewFeed from "@/renderer/components/NewFeed"
 import type { Feed } from "@/../generated/prisma/browser"
-import { useArticleService, useFeedService } from "@/renderer/hooks/useApi"
+import {
+  useArticleService,
+  useFeedService,
+  useImportExportService,
+} from "@/renderer/hooks/useApi"
 import toast from "react-hot-toast"
 
 type DeleteFeedDialogProps = {
@@ -100,8 +105,10 @@ export default function Settings() {
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
   const [isDeleteFeedDialogOpen, setIsDeleteFeedDialogOpen] = useState(false)
   const [feedToDelete, setFeedToDelete] = useState<Feed | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
   const articleService = useArticleService()
   const feedService = useFeedService()
+  const importExportService = useImportExportService()
   const openInBrowser = useOpenInBrowser()
 
   useEffect(() => {
@@ -115,6 +122,14 @@ export default function Settings() {
     if (isTheme(newTheme)) {
       setTheme(newTheme)
     }
+  }
+  const handleExport = async () => {
+    setIsExporting(true)
+    const result = await importExportService.exportToOPMLWithDialog()
+    if (!result.success) {
+      toast.error(t("exportFailed"))
+    }
+    setIsExporting(false)
   }
   const handleDeleteFeed = async () => {
     if (!feedToDelete) return
@@ -182,18 +197,31 @@ export default function Settings() {
         <div>
           <div className="flex items-center mb-3">
             <p className="font-bold">{t("feedsManagement")}</p>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <IconButton
-                  onClick={() => setIsNewFeedDialogOpen(true)}
-                  aria-label={t("newFeed")}
-                  className="ml-auto"
-                >
-                  <Plus size={24} />
-                </IconButton>
-              </TooltipTrigger>
-              <TooltipContent>{t("newFeed")}</TooltipContent>
-            </Tooltip>
+            <div className="ml-auto flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconButton
+                    onClick={handleExport}
+                    disabled={isExporting}
+                    aria-label={t("exportToOPML")}
+                  >
+                    <FileOutput size={24} />
+                  </IconButton>
+                </TooltipTrigger>
+                <TooltipContent>{t("exportToOPML")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconButton
+                    onClick={() => setIsNewFeedDialogOpen(true)}
+                    aria-label={t("newFeed")}
+                  >
+                    <Plus size={24} />
+                  </IconButton>
+                </TooltipTrigger>
+                <TooltipContent>{t("newFeed")}</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
 
           {!isLoading && (!feeds || feeds.length === 0) && (
