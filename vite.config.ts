@@ -24,10 +24,11 @@ export default defineConfig({
           build: {
             outDir: path.join(__dirname, "dist/electron"),
             rollupOptions: {
-              external: [
-                "better-sqlite3",
-                path.resolve(__dirname, "generated/prisma/client"),
-              ],
+              external: ["better-sqlite3"],
+              output: {
+                banner:
+                  "import { createRequire as __createRequire } from \"node:module\"; globalThis.require = __createRequire(import.meta.url);",
+              },
             },
           },
           resolve: {
