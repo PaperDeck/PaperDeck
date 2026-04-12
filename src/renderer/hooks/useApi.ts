@@ -39,3 +39,6 @@ export const useDataStorage = () => {
 export const useOpenInBrowser = () => {
   return window.ipcBridge.openInBrowser
 }
+export const useImportExportService = () => {
+  return window.ipcBridge.importExportService
+}

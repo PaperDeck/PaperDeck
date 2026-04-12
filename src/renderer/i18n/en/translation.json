@@ -32,5 +32,22 @@
   "markAsUnread": "Mark As Unread",
   "markedAsUnread": "Marked As Unread",
   "moreOptions": "More Options",
-  "settings": "Settings"
+  "settings": "Settings",
+  "theme": "Theme",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "feedsManagement": "Feeds Management",
+  "noFeeds": "No feeds added yet.",
+  "delete": "Delete",
+  "deleteFeedTitle": "Are you sure you want to delete \"{{feedTitle}}\"?",
+  "deleteFeedDescription": "This action will permanently remove the feed and all its articles.",
+  "feedDeleted": "Feed deleted",
+  "feedDeleteFailed": "Failed to delete feed",
+  "exportToOPML": "Export to OPML",
+  "exportFailed": "Export failed",
+  "importFromOPML": "Import from OPML",
+  "importFailed": "Import failed",
+  "importSuccess": "Import completed: {{importedCount}} imported, {{skippedCount}} skipped",
+  "importNoFeedsFound": "No feeds available to import"
 }
