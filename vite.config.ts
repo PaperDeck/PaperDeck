@@ -27,7 +27,7 @@ export default defineConfig({
               external: ["better-sqlite3"],
               output: {
                 banner:
-                  "import { createRequire as __createRequire } from \"node:module\"; globalThis.require = __createRequire(import.meta.url);",
+                  "import { createRequire as __createRequire } from 'node:module'; globalThis.require = __createRequire(import.meta.url);",
               },
             },
           },
