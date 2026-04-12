@@ -112,6 +112,8 @@ export default function Settings() {
   const feedService = useFeedService()
   const importExportService = useImportExportService()
   const openInBrowser = useOpenInBrowser()
+  const feedList = feeds ?? []
+  const hasFeeds = feedList.length > 0
 
   useEffect(() => {
     getFeeds()
@@ -273,12 +275,12 @@ export default function Settings() {
             </div>
           </div>
 
-          {!isLoading && (!feeds || feeds.length === 0) && (
+          {!isLoading && !hasFeeds && (
             <p className="text-sm text-gray-500">{t("noFeeds")}</p>
           )}
-          {!isLoading && feeds && feeds.length > 0 && (
+          {hasFeeds && (
             <ul className="space-y-2 mb-5">
-              {feeds.map((feed) => (
+              {feedList.map((feed) => (
                 <li
                   key={feed.url}
                   className="rounded-md border border-gray-200 dark:border-gray-700 p-3"
