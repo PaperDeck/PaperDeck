@@ -5,7 +5,6 @@ import articleService from "@/electron/services/articleService"
 import feedService from "@/electron/services/feedService"
 import feedSyncService from "@/electron/services/feedSyncService"
 import feedParser from "@/electron/services/feedParser"
-import fs from "fs"
 import dataStorage from "@/electron/services/dataStorage"
 import openInBrowser from "@/electron/utils/openInBrowser"
 import importExportService from "@/electron/services/importExportService"
@@ -26,25 +25,8 @@ export type ServiceResponse<T = unknown> =
     }
 
 const isProduction = app.isPackaged
-const userDataPath = app.getPath("userData")
-const databasePath = path.join(userDataPath, "database.db")
-const resourcePath = path.join(
-  process.resourcesPath,
-  "app.asar.unpacked",
-  "resources",
-)
-
 function initDatabase() {
-  if (fs.existsSync(databasePath)) {
-    return
-  }
-  try {
-    const emptyDbPath = path.join(resourcePath, "empty.db")
-    fs.copyFileSync(emptyDbPath, databasePath)
-    fs.chmodSync(databasePath, 0o600)
-  } catch (err) {
-    console.error("Failed to initialize database:", err)
-  }
+  // TODO
 }
 
 const createWindow = () => {

@@ -20,7 +20,7 @@ const feedUrl = `https://example.com/${randomUUID()}`
 const testFeed = {
   title: "FeedSync Test Feed",
   url: feedUrl,
-  createdAt: new Date(),
+  createdAt: new Date().toISOString(),
 }
 
 const parsedFeed: ParserOutputType = {

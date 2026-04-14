@@ -30,6 +30,5 @@ tmp/
 # Other
 .env*
 !.env*example
-/generated/prisma
 *.db
 coverage

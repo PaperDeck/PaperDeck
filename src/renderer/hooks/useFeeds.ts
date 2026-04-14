@@ -1,4 +1,4 @@
-import type { Feed } from "@/../generated/prisma/browser"
+import type { Feed } from "@/schema"
 import { useCallback, useState } from "react"
 import { useFeedService } from "@/renderer/hooks/useApi"
 

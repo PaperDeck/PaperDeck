@@ -1,4 +1,4 @@
-import type { Article, Feed } from "@/../generated/prisma/browser"
+import type { Article, Feed } from "@/schema"
 
 export type ArticleWithFeed = Omit<Article, "content"> & {
   feed: Feed
