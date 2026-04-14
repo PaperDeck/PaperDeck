@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "build": "npm run build-vite && electron-builder --dir",
     "prepare": "husky",
-    "pretest": "npm run test:db-push",
+    "pretest": "dotenv -e .env.test -- node scripts/resetTestDatabase.js && npm run test:db-push",
     "test:db-push": "dotenv -e .env.test -- npx drizzle-kit push",
     "test:unit": "npm run pretest && npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
     "test:integration": "npm run pretest && npm rebuild better-sqlite3 && vitest run tests/integration --coverage",
