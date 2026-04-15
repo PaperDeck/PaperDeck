@@ -45,7 +45,7 @@ import {
 import IconButton from "@/renderer/components/IconButton"
 import { Plus } from "lucide-react"
 import NewFeed from "@/renderer/components/NewFeed"
-import type { Feed } from "@/../generated/prisma/browser"
+import type { Feed } from "@/schema"
 import {
   useArticleService,
   useFeedService,

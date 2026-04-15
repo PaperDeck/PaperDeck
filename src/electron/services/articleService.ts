@@ -1,73 +1,96 @@
-import { prisma } from "@/electron/utils/prisma"
+import db from "@/electron/utils/drizzle"
+import { article, feed } from "@/schema"
 import type { ArticleWithFeed } from "@/shared/types/article"
 import type FeedItem from "@/shared/types/feedItem"
 import truncateText from "@/shared/utils/truncateText"
 import extractText from "@/electron/utils/extractText"
 import lodash from "lodash"
+import { and, desc, eq, lt, or } from "drizzle-orm"
 class ArticleService {
   async saveArticles(feedUrl: string, articles: FeedItem[]) {
     const CHUNK_SIZE = 100
     const chunks: FeedItem[][] = lodash.chunk(articles, CHUNK_SIZE)
 
     for (const chunk of chunks) {
-      const operations = chunk.map((article) => {
-        const pubDate = article.isoDate ? new Date(article.isoDate) : new Date()
-        const articleId = article.guid ?? article.link ?? ""
-        const newContent = article["content:encoded"] ?? article.content
-        return prisma.article.upsert({
-          where: { id: articleId },
-          update: {
-            title: article.title ?? "",
-            summary: article.summary ?? article.contentSnippet ?? "",
-            link: article.link ?? "",
-            pubDate,
-          },
-          create: {
-            id: articleId,
-            title: article.title ?? "",
-            link: article.link ?? "",
-            summary: article.summary ?? article.contentSnippet ?? "",
-            pubDate,
-            isRead: false,
-            content: newContent ?? "",
-            feed: {
-              connect: { url: feedUrl },
-            },
-          },
-        })
+      db.transaction((tx) => {
+        for (const feedItem of chunk) {
+          const pubDate = feedItem.isoDate
+            ? new Date(feedItem.isoDate).toISOString()
+            : new Date().toISOString()
+          const articleId = feedItem.guid ?? feedItem.link ?? ""
+          const newContent = feedItem["content:encoded"] ?? feedItem.content
+
+          tx.insert(article)
+            .values({
+              id: articleId,
+              title: feedItem.title ?? "",
+              link: feedItem.link ?? "",
+              summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
+              pubDate,
+              isRead: false,
+              content: newContent ?? "",
+              feedUrl,
+            })
+            .onConflictDoUpdate({
+              target: article.id,
+              set: {
+                title: feedItem.title ?? "",
+                summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
+                link: feedItem.link ?? "",
+                pubDate,
+              },
+            })
+            .run()
+        }
       })
-      await prisma.$transaction(operations)
       await new Promise((resolve) => setTimeout(resolve, 10))
     }
   }
   async markArticleAsRead(articleId: string) {
-    return prisma.article.update({
-      where: { id: articleId },
-      data: { isRead: true },
-    })
+    const [updatedArticle] = await db
+      .update(article)
+      .set({ isRead: true })
+      .where(eq(article.id, articleId))
+      .returning()
+
+    if (!updatedArticle) {
+      throw new Error("Article not found")
+    }
+
+    return updatedArticle
   }
   async markArticleAsUnread(articleId: string) {
-    return prisma.article.update({
-      where: { id: articleId },
-      data: { isRead: false },
-    })
+    const [updatedArticle] = await db
+      .update(article)
+      .set({ isRead: false })
+      .where(eq(article.id, articleId))
+      .returning()
+
+    if (!updatedArticle) {
+      throw new Error("Article not found")
+    }
+
+    return updatedArticle
   }
   async markAllArticlesAsRead() {
-    return prisma.article.updateMany({
-      where: { isRead: false },
-      data: { isRead: true },
-    })
+    return db
+      .update(article)
+      .set({ isRead: true })
+      .where(eq(article.isRead, false))
   }
   async deleteAllArticlesByFeedUrl(feedUrl: string) {
-    return prisma.article.deleteMany({
-      where: { feedUrl },
-    })
+    return db.delete(article).where(eq(article.feedUrl, feedUrl))
   }
   async getArticleContentById(articleId: string) {
-    return prisma.article.findUnique({
-      where: { id: articleId },
-      select: { content: true },
-    })
+    const [result] = await db
+      .select({
+        content: article.content,
+      })
+      .from(article)
+      .where(eq(article.id, articleId))
+      .limit(1)
+
+    return result ?? null
   }
   async getAll(
     prop: {
@@ -75,7 +98,7 @@ class ArticleService {
       ignoreRead?: boolean
       cursor?: {
         id: string
-        pubDate: Date
+        pubDate: string | Date
       }
       take?: number
       summaryPreview?: {
@@ -95,33 +118,90 @@ class ArticleService {
       summaryPreview = null,
       selectRawSummary = false,
     } = prop
-    const result: ArticleWithFeed[] = await prisma.article.findMany({
-      orderBy: [{ pubDate: "desc" }, { id: "desc" }],
-      take: take + 1,
-      skip: cursor ? 1 : 0,
-      cursor: cursor ? { id: cursor.id } : undefined,
-      where: {
-        isRead: ignoreRead ? false : undefined,
-      },
-      select: {
-        id: true,
-        title: true,
-        summary: true,
-        link: true,
-        pubDate: true,
-        isRead: true,
-        feedUrl: true,
-        createdAt: true,
-        ...(includeFeeds && {
-          feed: {
-            select: {
-              title: true,
-              url: true,
-            },
-          },
-        }),
-      },
+
+    const cursorPubDate = cursor
+      ? cursor.pubDate instanceof Date
+        ? cursor.pubDate.toISOString()
+        : cursor.pubDate
+      : null
+
+    const cursorCondition = cursor
+      ? or(
+          lt(article.pubDate, cursorPubDate as string),
+          and(
+            eq(article.pubDate, cursorPubDate as string),
+            lt(article.id, cursor.id),
+          ),
+        )
+      : undefined
+
+    const whereClause = and(
+      ignoreRead ? eq(article.isRead, false) : undefined,
+      cursorCondition,
+    )
+
+    const baseRows = includeFeeds
+      ? await db
+          .select({
+            id: article.id,
+            title: article.title,
+            summary: article.summary,
+            link: article.link,
+            pubDate: article.pubDate,
+            isRead: article.isRead,
+            feedUrl: article.feedUrl,
+            createdAt: article.createdAt,
+            feedTitle: feed.title,
+            feedCreatedAt: feed.createdAt,
+          })
+          .from(article)
+          .leftJoin(feed, eq(article.feedUrl, feed.url))
+          .where(whereClause)
+          .orderBy(desc(article.pubDate), desc(article.id))
+          .limit(take + 1)
+      : await db
+          .select({
+            id: article.id,
+            title: article.title,
+            summary: article.summary,
+            link: article.link,
+            pubDate: article.pubDate,
+            isRead: article.isRead,
+            feedUrl: article.feedUrl,
+            createdAt: article.createdAt,
+          })
+          .from(article)
+          .where(whereClause)
+          .orderBy(desc(article.pubDate), desc(article.id))
+          .limit(take + 1)
+
+    const result: ArticleWithFeed[] = baseRows.map((row) => {
+      const articleItem = {
+        id: row.id,
+        title: row.title,
+        summary: row.summary,
+        link: row.link,
+        pubDate: row.pubDate,
+        isRead: row.isRead,
+        feedUrl: row.feedUrl,
+        createdAt: row.createdAt,
+      } as ArticleWithFeed
+
+      if (includeFeeds) {
+        const rowWithFeed = row as typeof row & {
+          feedTitle: string | null
+          feedCreatedAt: string | null
+        }
+        articleItem.feed = {
+          url: row.feedUrl,
+          title: rowWithFeed.feedTitle ?? "",
+          createdAt: rowWithFeed.feedCreatedAt ?? "",
+        }
+      }
+
+      return articleItem
     })
+
     const hasMore = result.length > take
     if (hasMore) {
       result.pop()

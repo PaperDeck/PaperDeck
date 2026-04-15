@@ -8,7 +8,7 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: "file:./test.db"
+      DATABASE_URL: "./test.db"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -23,5 +23,4 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npx eslint . --ext .js,.jsx,.ts,.tsx
       - run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}"
-      - run: npx prisma generate
       - run: npm test

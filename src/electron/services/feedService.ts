@@ -1,33 +1,52 @@
-import { prisma } from "@/electron/utils/prisma"
+import db from "@/electron/utils/drizzle"
+import { feed } from "@/schema"
+import { eq } from "drizzle-orm"
+import { FEED_ALREADY_EXISTS_ERROR_CODE } from "@/shared/consts"
 
 class FeedService {
   async addFeed(title: string, url: string) {
-    return await prisma.feed.create({
-      data: {
-        title: title,
-        url: url,
-      },
-    })
+    try {
+      const [createdFeed] = await db
+        .insert(feed)
+        .values({
+          title,
+          url,
+        })
+        .returning()
+
+      return createdFeed
+    } catch (error) {
+      const err = error as { code?: string }
+      if (err?.code === "SQLITE_CONSTRAINT_PRIMARYKEY") {
+        throw Object.assign(new Error("Feed already exists"), {
+          code: FEED_ALREADY_EXISTS_ERROR_CODE,
+        })
+      }
+      throw error
+    }
   }
   async getFeeds() {
-    return await prisma.feed.findMany()
+    return await db.select().from(feed)
   }
   async deleteFeed(url: string) {
-    return await prisma.feed.delete({
-      where: {
-        url: url,
-      },
-    })
+    const result = await db.delete(feed).where(eq(feed.url, url)).returning()
+    if (result.length === 0) {
+      throw new Error("Feed not found")
+    }
+    return result[0]
   }
   async updateFeed(url: string, title: string) {
-    return await prisma.feed.update({
-      where: {
-        url: url,
-      },
-      data: {
-        title: title,
-      },
-    })
+    const [updatedFeed] = await db
+      .update(feed)
+      .set({ title })
+      .where(eq(feed.url, url))
+      .returning()
+
+    if (!updatedFeed) {
+      throw new Error("Feed not found")
+    }
+
+    return updatedFeed
   }
 }
 

@@ -18,7 +18,7 @@ const api = {
       ignoreRead: boolean
       cursor?: {
         id: string
-        pubDate: Date
+        pubDate: string | Date
       }
       take?: number
       summaryPreview?: {

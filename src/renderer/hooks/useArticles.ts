@@ -27,7 +27,7 @@ interface ArticlesState {
     ignoreRead: boolean
     cursor?: {
       id: string
-      pubDate: Date
+      pubDate: Date | string
     }
     take?: number
     replace?: boolean
