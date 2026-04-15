@@ -8,7 +8,7 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: "file:./test.db"
+      DATABASE_URL: "./test.db"
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
