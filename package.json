@@ -15,7 +15,7 @@
     "test:db-push": "dotenv -e .env.test -- npx drizzle-kit push",
     "test:unit": "npm run pretest && npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
     "test:integration": "npm run pretest && npm rebuild better-sqlite3 && vitest run tests/integration --coverage",
-    "test": "npm run pretest && npm rebuild better-sqlite3 && vitest run --coverage"
+    "test": "npm rebuild better-sqlite3 && vitest run --coverage"
   },
   "build": {
     "appId": "com.reader.app",
