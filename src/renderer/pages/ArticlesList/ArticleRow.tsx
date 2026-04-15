@@ -53,7 +53,7 @@ function ArticleRowComponent({
       </p>
       {article.pubDate && (
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          {fromNow(article.pubDate)}
+          {fromNow(new Date(article.pubDate))}
         </p>
       )}
       <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
