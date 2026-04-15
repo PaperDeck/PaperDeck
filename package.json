@@ -27,8 +27,8 @@
       "dist/**/*",
       "package.json",
       {
-        "from": "resources",
-        "to": "resources",
+        "from": "drizzle",
+        "to": "drizzle",
         "filter": [
           "**/*"
         ]
@@ -42,7 +42,8 @@
       }
     ],
     "asarUnpack": [
-      "resources/**/*"
+      "resources/**/*",
+      "drizzle/**/*"
     ]
   },
   "dependencies": {

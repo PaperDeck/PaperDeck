@@ -8,6 +8,8 @@ import feedParser from "@/electron/services/feedParser"
 import dataStorage from "@/electron/services/dataStorage"
 import openInBrowser from "@/electron/utils/openInBrowser"
 import importExportService from "@/electron/services/importExportService"
+import { migrate } from "drizzle-orm/better-sqlite3/migrator"
+import db from "@/electron/utils/drizzle"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -25,8 +27,20 @@ export type ServiceResponse<T = unknown> =
     }
 
 const isProduction = app.isPackaged
+const resourcePath = path.join(process.resourcesPath, "app.asar.unpacked")
+const drizzlePath = path.join(resourcePath, "drizzle")
+
 function initDatabase() {
-  // TODO
+  try {
+    console.log("Running database migrations...")
+    migrate(db, {
+      migrationsFolder: drizzlePath,
+    })
+    console.log("Database migrations completed successfully.")
+  } catch (error) {
+    console.error("Database migration failed:", error)
+    app.quit()
+  }
 }
 
 const createWindow = () => {
