@@ -60,7 +60,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
-    "dompurify": "^3.3.2",
+    "dompurify": "^3.4.0",
     "dotenv": "^17.4.2",
     "dotenv-cli": "^11.0.0",
     "drizzle-orm": "^0.45.2",
