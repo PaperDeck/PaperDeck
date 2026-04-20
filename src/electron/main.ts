@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron"
+import { app, BrowserWindow, ipcMain, Menu } from "electron"
 import path from "path"
 import { fileURLToPath } from "url"
 import articleService from "@/electron/services/articleService"
@@ -63,6 +63,7 @@ const createWindow = () => {
 app.whenReady().then(() => {
   if (isProduction) {
     initDatabase()
+    Menu.setApplicationMenu(null)
   }
   registerService("articleService", articleService)
   registerService("feedService", feedService)
