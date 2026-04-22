@@ -59,6 +59,13 @@
         "portable"
       ]
     },
+    "linux": {
+      "target": [
+        "AppImage",
+        "zip"
+      ],
+      "category": "Utility"
+    },
     "nsis": {
       "oneClick": true
     }
