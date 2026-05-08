@@ -54,7 +54,7 @@
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-virtual": "^3.13.24",
     "@types/lodash": "^4.17.24",
-    "axios": "^1.15.1",
+    "axios": "^1.15.2",
     "better-sqlite3": "^12.9.0",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
