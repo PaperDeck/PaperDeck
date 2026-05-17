@@ -27,8 +27,13 @@ export type ServiceResponse<T = unknown> =
     }
 
 const isProduction = app.isPackaged
-const resourcePath = path.join(process.resourcesPath, "app.asar.unpacked")
-const drizzlePath = path.join(resourcePath, "drizzle")
+const unpackedPath = path.join(process.resourcesPath, "app.asar.unpacked")
+const drizzlePath = app.isPackaged
+  ? path.join(unpackedPath, "drizzle")
+  : path.join(app.getAppPath(), "drizzle")
+const resourcesPath = app.isPackaged
+  ? path.join(unpackedPath, "resources")
+  : path.join(app.getAppPath(), "resources")
 
 function initDatabase() {
   try {
@@ -52,6 +57,7 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.mjs"),
       spellcheck: false,
     },
+    icon: path.join(resourcesPath, "icon.png"),
   })
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL)
