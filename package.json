@@ -1,5 +1,5 @@
 {
-  "name": "reader",
+  "name": "paperdeck",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -20,10 +20,11 @@
     "test": "npm rebuild better-sqlite3 && vitest run --coverage"
   },
   "build": {
-    "appId": "com.reader.app",
-    "productName": "Reader",
+    "appId": "com.paperdeck.app",
+    "productName": "PaperDeck",
     "directories": {
-      "output": "build"
+      "output": "build",
+      "buildResources": "resources"
     },
     "files": [
       "dist/**/*",
@@ -38,6 +39,13 @@
       {
         "from": "dist",
         "to": "dist",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources",
+        "to": "resources",
         "filter": [
           "**/*"
         ]
