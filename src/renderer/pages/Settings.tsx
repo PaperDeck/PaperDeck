@@ -138,14 +138,13 @@ export default function Settings() {
   const handleImport = async () => {
     setIsImporting(true)
     const importResult = await importExportService.importFromOPMLWithDialog()
+    if (!importResult.success) {
+      toast.error(t("importFailed"))
+    }
     if (importResult.data.canceled) {
       setIsImporting(false)
       return
     }
-    if (!importResult.success) {
-      toast.error(t("importFailed"))
-    }
-
     const importedCount = importResult.data.result.importedCount
     const skippedCount = importResult.data.result.skippedCount
     const totalCount = importResult.data.result.totalCount
