@@ -68,8 +68,6 @@ const api = {
       ipcRenderer.invoke("importExportService", "exportToOPML", filePath),
     importFromOPMLWithDialog: () =>
       ipcRenderer.invoke("importExportService", "importFromOPMLWithDialog"),
-    importFromOPML: (filePath: string) =>
-      ipcRenderer.invoke("importExportService", "importFromOPML", filePath),
   },
   feedParser: (url: string, timeout?: number) =>
     ipcRenderer.invoke("feedParser", url, timeout),
