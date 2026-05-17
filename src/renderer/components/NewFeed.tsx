@@ -82,7 +82,7 @@ export default function NewFeed({
         data.url,
       )
       if (!newFeed.success) {
-        if (newFeed.error.code === "P2002") {
+        if (newFeed.error.code === "FEED_ALREADY_EXISTS") {
           toast.error(t("feedAlreadyExists"))
         } else {
           toast.error(t("failedToAddFeed"))
