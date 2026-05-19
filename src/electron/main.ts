@@ -48,8 +48,10 @@ function initDatabase() {
   }
 }
 
+let mainWindow: BrowserWindow | null = null
+
 const createWindow = () => {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -60,39 +62,51 @@ const createWindow = () => {
     icon: path.join(resourcesPath, "icon.png"),
   })
   if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL)
+    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
   } else {
-    win.loadFile(path.join(__dirname, "../renderer/index.html"))
+    mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"))
   }
 }
 
-app.whenReady().then(() => {
-  if (isProduction) {
-    initDatabase()
-    Menu.setApplicationMenu(null)
-  }
-  registerService("articleService", articleService)
-  registerService("feedService", feedService)
-  registerService("feedSyncService", feedSyncService, {
-    callbackBridges: {
-      syncFeeds: {
-        eventChannel: "feedSyncProgress",
-      },
-    },
-  })
-  registerService("dataStorage", dataStorage)
-  registerService("importExportService", importExportService)
-  registerFunction("feedParser", feedParser)
-  registerFunction("openInBrowser", openInBrowser)
+const gotTheLock = app.requestSingleInstanceLock()
 
-  createWindow()
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
+if (!gotTheLock) {
+  app.quit()
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
     }
   })
-})
+  app.whenReady().then(() => {
+    if (isProduction) {
+      initDatabase()
+      Menu.setApplicationMenu(null)
+    }
+    registerService("articleService", articleService)
+    registerService("feedService", feedService)
+    registerService("feedSyncService", feedSyncService, {
+      callbackBridges: {
+        syncFeeds: {
+          eventChannel: "feedSyncProgress",
+        },
+      },
+    })
+    registerService("dataStorage", dataStorage)
+    registerService("importExportService", importExportService)
+    registerFunction("feedParser", feedParser)
+    registerFunction("openInBrowser", openInBrowser)
+
+    createWindow()
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+      }
+    })
+  })
+}
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
