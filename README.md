@@ -67,6 +67,12 @@ npm run test:unit        # Run unit tests
 npm run test:integration # Run integration tests
 ```
 
+Build the app:
+
+```
+npm run build
+```
+
 ## Tech Stack
 
 - Electron for the desktop application runtime
