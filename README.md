@@ -1,73 +1,89 @@
-# React + TypeScript + Vite
+## PaperDeck
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+PaperDeck is an open-source, local-first RSS/Atom reader.
 
-Currently, two official plugins are available:
+![home page](docs/screenshots/home.png)
+![article page](docs/screenshots/article.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- Subscribe to feeds
+- Read articles in-app
+- Export and import OPML files
+- Mark articles as read or unread
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Development
 
-## Expanding the ESLint configuration
+### Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js >= 24
+- npm
+- Windows or Linux (macOS is not supported yet)
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+### Setup
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Clone the repository:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+git clone https://github.com/PaperDeck/PaperDeck.git
+cd PaperDeck
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x"
-import reactDom from "eslint-plugin-react-dom"
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+npm install
 ```
+
+Create environment files:
+
+```sh
+cp .env.example .env
+cp .env.test.example .env.test
+```
+
+Run database migrations for the development environment:
+
+> [!NOTE]
+> Delete `dev.db` first if it already exists.
+
+```sh
+npx drizzle-kit push
+```
+
+### Scripts
+
+Run the app in development mode:
+
+```sh
+npm run dev
+```
+
+Run tests:
+
+```sh
+npm test                 # Run all tests
+npm run test:unit        # Run unit tests
+npm run test:integration # Run integration tests
+```
+
+Build the app:
+
+```
+npm run build
+```
+
+## Tech Stack
+
+- Electron for the desktop application runtime
+- React + Vite for the frontend
+- TypeScript for type safety
+- SQLite with Drizzle ORM for local data storage
+- Tailwind CSS and Radix UI for the user interface
+- Zustand for state management
+- i18next for internationalization
+- Vitest for testing
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
