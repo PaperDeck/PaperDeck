@@ -12,38 +12,40 @@ class ArticleService {
     const chunks: FeedItem[][] = lodash.chunk(articles, CHUNK_SIZE)
 
     for (const chunk of chunks) {
-      db.transaction((tx) => {
-        for (const feedItem of chunk) {
+      await db.transaction(async (tx) => {
+        const rows = chunk.map((feedItem) => {
           const pubDate = feedItem.isoDate
             ? new Date(feedItem.isoDate).toISOString()
             : new Date().toISOString()
           const articleId = feedItem.guid ?? feedItem.link ?? ""
           const newContent = feedItem["content:encoded"] ?? feedItem.content
 
-          tx.insert(article)
-            .values({
-              id: articleId,
-              title: feedItem.title ?? "",
-              link: feedItem.link ?? "",
-              summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
-              pubDate,
-              isRead: false,
-              content: newContent ?? "",
-              feedUrl,
-            })
-            .onConflictDoUpdate({
-              target: article.id,
-              set: {
-                title: feedItem.title ?? "",
-                summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
-                link: feedItem.link ?? "",
-                pubDate,
-              },
-            })
-            .run()
-        }
+          return {
+            id: articleId,
+            title: feedItem.title ?? "",
+            link: feedItem.link ?? "",
+            summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
+            pubDate,
+            isRead: false,
+            content: newContent ?? "",
+            feedUrl,
+          }
+        })
+
+        await tx
+          .insert(article)
+          .values(rows)
+          .onConflictDoUpdate({
+            target: article.id,
+            set: {
+              title: article.title,
+              summary: article.summary,
+              link: article.link,
+              pubDate: article.pubDate,
+            },
+          })
+          .run()
       })
-      await new Promise((resolve) => setTimeout(resolve, 10))
     }
   }
   async markArticleAsRead(articleId: string) {
