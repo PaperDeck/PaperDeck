@@ -5,7 +5,7 @@ import type FeedItem from "@/shared/types/feedItem"
 import truncateText from "@/shared/utils/truncateText"
 import extractText from "@/electron/utils/extractText"
 import lodash from "lodash"
-import { and, desc, eq, lt, or } from "drizzle-orm"
+import { and, desc, eq, lt, or, sql } from "drizzle-orm"
 class ArticleService {
   async saveArticles(feedUrl: string, articles: FeedItem[]) {
     const CHUNK_SIZE = 100
@@ -38,10 +38,12 @@ class ArticleService {
           .onConflictDoUpdate({
             target: article.id,
             set: {
-              title: article.title,
-              summary: article.summary,
-              link: article.link,
-              pubDate: article.pubDate,
+              title: sql`excluded.title`,
+              summary: sql`excluded.summary`,
+              link: sql`excluded.link`,
+              pubDate: sql`excluded.pubDate`,
+              content: sql`excluded.content`,
+              feedUrl: sql`excluded.feedUrl`,
             },
           })
           .run()
