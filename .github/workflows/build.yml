@@ -28,7 +28,10 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
 
       - name: Publish
         run: npx electron-forge publish --tag ${{ github.ref_name }}
