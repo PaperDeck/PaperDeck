@@ -34,6 +34,18 @@ const config: ForgeConfig = {
       },
     },
   ],
+  publishers: [
+    {
+      name: "@electron-forge/publisher-github",
+      config: {
+        repository: {
+          owner: "paperdeck",
+          name: "paperdeck",
+        },
+        prerelease: false,
+      },
+    },
+  ],
   plugins: [
     {
       name: "@electron-forge/plugin-auto-unpack-natives",
