@@ -11,9 +11,14 @@ import importExportService from "@/electron/services/importExportService"
 import { migrate } from "drizzle-orm/libsql/migrator"
 import db from "@/electron/utils/drizzle"
 import squirrelStartup from "electron-squirrel-startup"
+import { updateElectronApp } from "update-electron-app"
 
 if (squirrelStartup) {
   app.quit()
+}
+
+if (app.isPackaged && dataStorage.getAutoUpdate()) {
+  updateElectronApp()
 }
 
 const __filename = fileURLToPath(import.meta.url)

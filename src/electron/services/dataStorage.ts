@@ -12,6 +12,10 @@ const schema = {
     enum: ["all", "unread"],
     default: "unread",
   },
+  autoUpdate: {
+    type: "boolean",
+    default: true,
+  },
 }
 
 class DataStorage {
@@ -30,6 +34,12 @@ class DataStorage {
   }
   setFilterType(filterType: IDataStorage["filterType"]) {
     this.store.set("filterType", filterType)
+  }
+  getAutoUpdate() {
+    return this.store.get("autoUpdate")
+  }
+  setAutoUpdate(autoUpdate: IDataStorage["autoUpdate"]) {
+    this.store.set("autoUpdate", autoUpdate)
   }
 }
 

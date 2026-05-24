@@ -60,11 +60,16 @@
     "rss-parser": "^3.13.0",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.1.18",
+    "update-electron-app": "^3.2.0",
     "zustand": "^5.0.11"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown",
     "*.{js,ts,vue}": "eslint --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PaperDeck/PaperDeck"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.11.1",
