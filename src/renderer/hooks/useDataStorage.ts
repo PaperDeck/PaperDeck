@@ -13,6 +13,10 @@ interface DataStorageState extends IDataStorage {
     filterType: IDataStorage["filterType"],
     dataStorage: IpcBridge["dataStorage"],
   ) => void
+  setAutoUpdate: (
+    autoUpdate: IDataStorage["autoUpdate"],
+    dataStorage: IpcBridge["dataStorage"],
+  ) => void
 }
 
 const useDataStorageStore = create<DataStorageState>((set) => ({
@@ -20,6 +24,7 @@ const useDataStorageStore = create<DataStorageState>((set) => ({
   filterType:
     (localStorage.getItem("filterType") as IDataStorage["filterType"]) ||
     "unread",
+  autoUpdate: localStorage.getItem("autoUpdate") !== "false",
   setTheme: (theme, dataStorage) => {
     localStorage.setItem("theme", theme)
     dataStorage.setTheme(theme)
@@ -30,10 +35,22 @@ const useDataStorageStore = create<DataStorageState>((set) => ({
     dataStorage.setFilterType(filterType)
     set({ filterType })
   },
+  setAutoUpdate: (autoUpdate, dataStorage) => {
+    localStorage.setItem("autoUpdate", String(autoUpdate))
+    dataStorage.setAutoUpdate(autoUpdate)
+    set({ autoUpdate })
+  },
 }))
 
 export default function useDataStorage() {
-  const { theme, filterType, setTheme, setFilterType } = useDataStorageStore()
+  const {
+    theme,
+    filterType,
+    autoUpdate,
+    setTheme,
+    setFilterType,
+    setAutoUpdate,
+  } = useDataStorageStore()
   const dataStorage = api.useDataStorage()
   useEffect(() => {
     dataStorage.getTheme().then((storedTheme) => {
@@ -56,12 +73,25 @@ export default function useDataStorage() {
         )
       }
     })
-  }, [dataStorage, setTheme, setFilterType])
+    dataStorage.getAutoUpdate().then((storedAutoUpdate) => {
+      if (storedAutoUpdate.success) {
+        setAutoUpdate(storedAutoUpdate.data, dataStorage)
+      } else {
+        console.error(
+          "Failed to get auto update setting from data storage:",
+          storedAutoUpdate.error,
+        )
+      }
+    })
+  }, [dataStorage, setTheme, setFilterType, setAutoUpdate])
   return {
     theme,
     filterType,
+    autoUpdate,
     setTheme: (theme: IDataStorage["theme"]) => setTheme(theme, dataStorage),
     setFilterType: (filterType: IDataStorage["filterType"]) =>
       setFilterType(filterType, dataStorage),
+    setAutoUpdate: (autoUpdate: IDataStorage["autoUpdate"]) =>
+      setAutoUpdate(autoUpdate, dataStorage),
   }
 }

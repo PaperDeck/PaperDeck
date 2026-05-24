@@ -5,45 +5,49 @@ import type FeedItem from "@/shared/types/feedItem"
 import truncateText from "@/shared/utils/truncateText"
 import extractText from "@/electron/utils/extractText"
 import lodash from "lodash"
-import { and, desc, eq, lt, or } from "drizzle-orm"
+import { and, desc, eq, lt, or, sql } from "drizzle-orm"
 class ArticleService {
   async saveArticles(feedUrl: string, articles: FeedItem[]) {
     const CHUNK_SIZE = 100
     const chunks: FeedItem[][] = lodash.chunk(articles, CHUNK_SIZE)
 
     for (const chunk of chunks) {
-      db.transaction((tx) => {
-        for (const feedItem of chunk) {
+      await db.transaction(async (tx) => {
+        const rows = chunk.map((feedItem) => {
           const pubDate = feedItem.isoDate
             ? new Date(feedItem.isoDate).toISOString()
             : new Date().toISOString()
           const articleId = feedItem.guid ?? feedItem.link ?? ""
           const newContent = feedItem["content:encoded"] ?? feedItem.content
 
-          tx.insert(article)
-            .values({
-              id: articleId,
-              title: feedItem.title ?? "",
-              link: feedItem.link ?? "",
-              summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
-              pubDate,
-              isRead: false,
-              content: newContent ?? "",
-              feedUrl,
-            })
-            .onConflictDoUpdate({
-              target: article.id,
-              set: {
-                title: feedItem.title ?? "",
-                summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
-                link: feedItem.link ?? "",
-                pubDate,
-              },
-            })
-            .run()
-        }
+          return {
+            id: articleId,
+            title: feedItem.title ?? "",
+            link: feedItem.link ?? "",
+            summary: feedItem.summary ?? feedItem.contentSnippet ?? "",
+            pubDate,
+            isRead: false,
+            content: newContent ?? "",
+            feedUrl,
+          }
+        })
+
+        await tx
+          .insert(article)
+          .values(rows)
+          .onConflictDoUpdate({
+            target: article.id,
+            set: {
+              title: sql`excluded.title`,
+              summary: sql`excluded.summary`,
+              link: sql`excluded.link`,
+              pubDate: sql`excluded.pubDate`,
+              content: sql`excluded.content`,
+              feedUrl: sql`excluded.feedUrl`,
+            },
+          })
+          .run()
       })
-      await new Promise((resolve) => setTimeout(resolve, 10))
     }
   }
   async markArticleAsRead(articleId: string) {

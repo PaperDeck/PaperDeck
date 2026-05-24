@@ -5,87 +5,31 @@
   "type": "module",
   "main": "dist/electron/main.js",
   "scripts": {
-    "dev": "concurrently --kill-others \"electron-rebuild -f -w better-sqlite3 && vite\" \"npx react-devtools\"",
-    "build-vite": "electron-rebuild -f -w better-sqlite3 && tsc -b && vite build",
+    "dev": "concurrently --kill-others \"vite\" \"npx react-devtools\"",
+    "build-vite": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "prebuild": "npm run build-vite",
-    "build": "electron-builder",
-    "build:win": "npm run prebuild && electron-builder --win",
+    "build": "electron-forge make",
+    "build:win": "electron-forge make --platform=win32 --arch=x64",
     "prepare": "husky",
     "pretest": "dotenv -e .env.test -- node scripts/resetTestDatabase.js && npm run test:db-push",
     "test:db-push": "dotenv -e .env.test -- npx drizzle-kit push",
-    "test:unit": "npm run pretest && npm rebuild better-sqlite3 && vitest run tests/unit --coverage",
-    "test:integration": "npm run pretest && npm rebuild better-sqlite3 && vitest run tests/integration --coverage",
-    "test": "npm rebuild better-sqlite3 && vitest run --coverage"
-  },
-  "build": {
-    "appId": "com.paperdeck.app",
-    "productName": "PaperDeck",
-    "directories": {
-      "output": "build",
-      "buildResources": "resources"
-    },
-    "files": [
-      "dist/**/*",
-      "package.json",
-      {
-        "from": "drizzle",
-        "to": "drizzle",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "dist",
-        "to": "dist",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "resources",
-        "to": "resources",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "asarUnpack": [
-      "resources/**/*",
-      "drizzle/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        "zip",
-        "portable"
-      ]
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "zip"
-      ],
-      "category": "Utility"
-    },
-    "nsis": {
-      "oneClick": true
-    }
+    "test:unit": "vitest run tests/unit --coverage",
+    "test:integration": "vitest run tests/integration --coverage",
+    "test": "vitest run --coverage",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.3",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-virtual": "^3.13.24",
     "@types/lodash": "^4.17.24",
     "axios": "^1.15.1",
-    "better-sqlite3": "^12.9.0",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -94,6 +38,7 @@
     "dotenv": "^17.4.2",
     "dotenv-cli": "^11.0.0",
     "drizzle-orm": "^0.45.2",
+    "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^11.0.2",
     "fast-xml-builder": "^1.1.5",
     "fast-xml-parser": "^5.7.1",
@@ -115,16 +60,30 @@
     "rss-parser": "^3.13.0",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.1.18",
+    "update-electron-app": "^3.2.0",
     "zustand": "^5.0.11"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown",
     "*.{js,ts,vue}": "eslint --fix"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PaperDeck/PaperDeck"
+  },
   "devDependencies": {
+    "@electron-forge/cli": "^7.11.1",
+    "@electron-forge/maker-deb": "^7.11.1",
+    "@electron-forge/maker-rpm": "^7.11.1",
+    "@electron-forge/maker-squirrel": "^7.11.1",
+    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
+    "@electron-forge/plugin-fuses": "^7.11.1",
+    "@electron-forge/publisher-github": "^7.11.2",
+    "@electron/fuses": "^1.8.0",
     "@electron/rebuild": "^4.0.3",
     "@eslint/js": "^10.0.1",
-    "@types/better-sqlite3": "^7.6.13",
+    "@types/electron-squirrel-startup": "^1.0.2",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -133,7 +92,6 @@
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.10",
     "electron": "^42.1.0",
-    "electron-builder": "^26.8.1",
     "esbuild": "^0.28.0",
     "eslint": "^10.2.1",
     "eslint-plugin-react-hooks": "^7.1.1",

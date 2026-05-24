@@ -78,6 +78,9 @@ const api = {
     getFilterType: () => ipcRenderer.invoke("dataStorage", "getFilterType"),
     setFilterType: (filterType: "all" | "unread") =>
       ipcRenderer.invoke("dataStorage", "setFilterType", filterType),
+    getAutoUpdate: () => ipcRenderer.invoke("dataStorage", "getAutoUpdate"),
+    setAutoUpdate: (autoUpdate: boolean) =>
+      ipcRenderer.invoke("dataStorage", "setAutoUpdate", autoUpdate),
   },
   openInBrowser: (url: string) => ipcRenderer.invoke("openInBrowser", url),
 }

@@ -34,6 +34,8 @@
   "moreOptions": "More Options",
   "settings": "Settings",
   "theme": "Theme",
+  "autoUpdate": "Auto Update",
+  "autoUpdateDescription": "Automatically update to the latest version.",
   "light": "Light",
   "dark": "Dark",
   "system": "System",

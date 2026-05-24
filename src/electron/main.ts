@@ -8,8 +8,19 @@ import feedParser from "@/electron/services/feedParser"
 import dataStorage from "@/electron/services/dataStorage"
 import openInBrowser from "@/electron/utils/openInBrowser"
 import importExportService from "@/electron/services/importExportService"
-import { migrate } from "drizzle-orm/better-sqlite3/migrator"
+import { migrate } from "drizzle-orm/libsql/migrator"
 import db from "@/electron/utils/drizzle"
+import squirrelStartup from "electron-squirrel-startup"
+import { updateElectronApp } from "update-electron-app"
+
+if (squirrelStartup) {
+  app.quit()
+}
+
+if (app.isPackaged && dataStorage.getAutoUpdate()) {
+  updateElectronApp()
+}
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 

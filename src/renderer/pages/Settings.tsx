@@ -42,6 +42,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/renderer/components/ui/tooltip"
+import { Switch } from "@/renderer/components/ui/switch"
 import IconButton from "@/renderer/components/IconButton"
 import { Plus } from "lucide-react"
 import NewFeed from "@/renderer/components/NewFeed"
@@ -100,7 +101,8 @@ export default function Settings() {
   const navigate = useNavigate()
   const handleBackClick = () => navigate(-1)
   const { t } = useTranslation()
-  const { theme, setTheme, filterType } = useDataStorage()
+  const { theme, setTheme, filterType, autoUpdate, setAutoUpdate } =
+    useDataStorage()
   const { feeds, isLoading, getFeeds } = useFeeds()
   const { getArticles, fetchArticles } = useArticles()
   const [isNewFeedDialogOpen, setIsNewFeedDialogOpen] = useState(false)
@@ -231,6 +233,19 @@ export default function Settings() {
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+        <div>
+          <p className="font-bold mb-2">{t("autoUpdate")}</p>
+          <div className="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 p-3">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {t("autoUpdateDescription")}
+            </p>
+            <Switch
+              checked={autoUpdate}
+              onCheckedChange={setAutoUpdate}
+              aria-label={t("autoUpdate")}
+            />
+          </div>
         </div>
         <div>
           <div className="flex items-center mb-3">
