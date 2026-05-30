@@ -30,9 +30,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
-
       - name: Publish
         run: npx electron-forge publish --tag ${{ github.ref_name }}
         env:
