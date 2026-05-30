@@ -24,7 +24,7 @@ const config: ForgeConfig = {
         icon: path.join(__dirname, "assets/icon.ico"),
         setupIcon: path.join(__dirname, "assets/icon.ico"),
         description: "A simple reader app.",
-        iconUrl: "https://paperdeck.co/favicon.ico",
+        iconUrl: "https://paperdeck.co/icon.ico",
       },
     },
     {
