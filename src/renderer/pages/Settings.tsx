@@ -193,7 +193,7 @@ export default function Settings() {
   }
   return (
     <div className="flex flex-col items-center w-full mt-14">
-      <div className="flex flex-col gap-5 w-md">
+      <div className="flex flex-col gap-5 w-xl">
         <button
           onClick={handleBackClick}
           className="flex items-center gap-1 text-gray-600 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300"
