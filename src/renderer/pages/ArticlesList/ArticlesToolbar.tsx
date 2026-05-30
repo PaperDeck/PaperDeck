@@ -89,7 +89,7 @@ export default function ArticlesToolbar({
           <TooltipContent>{t("refreshFeeds")}</TooltipContent>
         </Tooltip>
       </div>
-      <div className="sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3 flex gap-1 justify-between w-md mb-1">
+      <div className="sticky top-0 z-20 bg-zinc-50 dark:bg-zinc-900 py-3 flex gap-1 justify-between w-xl mb-1">
         <div className="flex gap-1">
           <DropdownMenu>
             <Tooltip>

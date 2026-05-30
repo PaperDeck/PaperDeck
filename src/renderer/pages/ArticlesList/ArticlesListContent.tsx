@@ -47,7 +47,7 @@ export default function ArticlesListContent({
   const { t } = useTranslation()
 
   return (
-    <div className="flex items-center flex-col w-md mb-4">
+    <div className="flex items-center flex-col w-xl mb-4">
       {activeProcess && activeProcess.total > 0 && (
         <Alert className="my-2">
           <Rocket />
