@@ -1,13 +1,8 @@
-import path from "path"
-import { fileURLToPath } from "url"
-import { FusesPlugin } from "@electron-forge/plugin-fuses"
-import { FuseV1Options, FuseVersion } from "@electron/fuses"
-import type { ForgeConfig } from "@electron-forge/shared-types"
+const path = require("path")
+const { FusesPlugin } = require("@electron-forge/plugin-fuses")
+const { FuseV1Options, FuseVersion } = require("@electron/fuses")
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const config: ForgeConfig = {
+const config = {
   packagerConfig: {
     name: "PaperDeck",
     appBundleId: "com.paperdeck.app",
@@ -67,4 +62,4 @@ const config: ForgeConfig = {
   ],
 }
 
-export default config
+module.exports = config
