@@ -44,6 +44,7 @@ const config: ForgeConfig = {
           name: "paperdeck",
         },
         prerelease: false,
+        draft: true,
       },
     },
   ],
